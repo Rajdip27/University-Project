@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/UniversityProject.Application/UniversityProject.Application.csproj" />
+    <Project Path="src/UniversityProject.Core/UniversityProject.Core.csproj" />
+    <Project Path="src/UniversityProject.Infrastructure/UniversityProject.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/App/">
+    <Project Path="src/App/UniversityProject.App/UniversityProject.App.csproj" />
+  </Folder>
+</Solution>
