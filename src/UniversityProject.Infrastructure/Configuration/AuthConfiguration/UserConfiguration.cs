@@ -20,26 +20,6 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
             PasswordHash = hasher.HashPassword(null, "P@ssword1"),
             EmailConfirmed = true,
             SecurityStamp = Guid.NewGuid().ToString()
-        }, new User
-        {
-            Id = 2,
-            Email = "eventmanager@localhost.com",
-            NormalizedEmail = "EVENTMANAGER@LOCALHOST.COM",
-            UserName = "eventmanager@localhost.com",
-            NormalizedUserName = "EVENTMANAGER@LOCALHOST.COM",
-            PasswordHash = hasher.HashPassword(null, "P@ssword1"),
-            EmailConfirmed = true,
-            SecurityStamp = Guid.NewGuid().ToString()
-        }, new User
-        {
-            Id = 3,
-            Email = "student@localhost.com",
-            NormalizedEmail = "STUDENT@LOCALHOST.COM",
-            UserName = "student@localhost.com",
-            NormalizedUserName = "STUDENT@LOCALHOST.COM",
-            PasswordHash = hasher.HashPassword(null, "P@ssword1"),
-            EmailConfirmed = true,
-            SecurityStamp = Guid.NewGuid().ToString()
         });
     }
 }

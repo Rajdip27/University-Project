@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InventorySystem.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -10,25 +12,26 @@ using UniversityProject.Core.Entities.EntityLogs;
 using UniversityProject.Infrastructure.Extensions;
 using UniversityProject.Infrastructure.Healper.Acls;
 using static UniversityProject.Core.Entities.Auth.IdentityModel;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using static UniversityProject.Core.Entities.Auth.IdentityModel;
 
 namespace UniversityProject.Infrastructure.Data;
 
-public class ApplicationDbContext : IdentityDbContext<User, Role, long, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ISignInHelper _signInHelper) : IdentityDbContext<User, Role, long, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>(options)
 {
-    private readonly ISignInHelper _signInHelper;
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ISignInHelper signInHelper)
-        : base(options)
-    {
-        _signInHelper = signInHelper;
-    }
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<RouteLog> RouteLogs => Set<RouteLog>();
-
-
-
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<StockLedger> StockLedgers => Set<StockLedger>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<Purchase> Purchases => Set<Purchase>();
+    public DbSet<CustomerLedger> CustomerLedgers => Set<CustomerLedger>();
+    // SALES
+    public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+    public DbSet<SalesItem> SalesItems => Set<SalesItem>();
+    public DbSet<PurchaseItem> PurchaseItems => Set<PurchaseItem>();
+    public DbSet<CustomerPayment> CustomerPayments => Set<CustomerPayment>();
+    public DbSet<SupplierPayment> SupplierPayments => Set<SupplierPayment>();
+    public DbSet<SupplierLedger> SupplierLedgers => Set<SupplierLedger>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,11 +46,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, long, UserClai
         {
             fk.DeleteBehavior = DeleteBehavior.Restrict;
         }
-
-   
     }
-
-    
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -58,16 +57,12 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, long, UserClai
         optionsBuilder.LogTo(message => WriteSqlQueryLog(message));
         optionsBuilder.UseLoggerFactory(new LoggerFactory(new[] { new Microsoft.Extensions.Logging.Debug.DebugLoggerProvider() }));
     }
-
-
-
     public override int SaveChanges()
     {
         Audit();      // Track changes for auditing
         AuditTrail(); // Log detailed changes
         return base.SaveChanges();
     }
-
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -83,7 +78,6 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, long, UserClai
         }
       
     }
-
     private static void WriteSqlQueryLog(string query, StoreType storeType = StoreType.Output)
     {
         if (storeType == StoreType.Output)
