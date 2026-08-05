@@ -1,0 +1,324 @@
+﻿@model IEnumerable<UniversityProject.Core.Entities.Product>
+@{
+    ViewData["Title"] = "Product List";
+    Layout = "_Layout";
+
+    int currentPage = ViewBag.Page ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int pageSize = 10;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+    string searchQuery = ViewBag.Search ?? "";
+
+    int startItem = totalCount == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    int endItem = Math.Min(currentPage * pageSize, totalCount);
+}
+
+<style>
+    /* Import Barcode Font */
+    @@import url('https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap');
+
+    /* Specific styles for Product List */
+    .table-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        background: var(--bg-deep);
+        color: var(--fg-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+        .action-btn:hover {
+            color: var(--fg);
+            border-color: var(--accent);
+        }
+
+        .action-btn.delete:hover {
+            border-color: #f43f5e;
+            color: #f43f5e;
+        }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .product-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border);
+        background: var(--bg-panel);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--fg-dim);
+    }
+
+    /* Barcode styling */
+    .barcode-text {
+        font-family: 'Libre Barcode 39', cursive;
+        font-size: 36px;
+        letter-spacing: 0px;
+        color: var(--fg);
+        line-height: 1;
+        display: inline-block;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .page-info {
+        font-size: 13px;
+        color: var(--fg-muted);
+        margin-right: auto;
+    }
+
+    .page-btn {
+        min-width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        background: var(--bg-deep);
+        color: var(--fg-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 0 10px;
+    }
+
+        .page-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .page-btn.active {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #008f55);
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 201, 120, 0.3);
+        }
+
+    .topbar-search {
+        position: relative;
+        width: 240px;
+        margin: 0;
+    }
+
+        .topbar-search input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--fg);
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+            .topbar-search input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px var(--accent-glow);
+            }
+
+        .topbar-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--fg-dim);
+            font-size: 13px;
+        }
+</style>
+
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+    <div>
+        <h1>Product List</h1>
+        <p>Manage your inventory products, stock, and pricing.</p>
+    </div>
+    <a href="@Url.Action("Create", "Products")" class="btn-primary">
+        <i class="fas fa-plus"></i> Add Product
+    </a>
+</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <h3>All Products</h3>
+        <form action="@Url.Action("Index", "Products")" method="get" class="topbar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" name="search" value="@searchQuery" placeholder="Search products...">
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>SKU</th>
+                    @* <th>Barcode</th> *@
+                    <th>Selling Price</th>
+                    <th>Purchase Price</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--fg-muted);">No products found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-img">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                    <span>@item.ProductName</span>
+                                </div>
+                            </td>
+                            <td>@item.Sku</td>
+                            @* <td>
+                                @if (!string.IsNullOrEmpty(item.Barcode))
+                                {
+                                    <span class="barcode-text">item.Barcode*</span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--fg-dim); font-size: 13px;">N/A</span>
+                                }
+                            </td>  *@
+                            <td>$@item.SellingPrice.ToString("N2")</td>
+                            <td>$@item.PurchasePrice.ToString("N2")</td>
+                            <td>
+                                @if (item.Status)
+                                {
+                                    <span class="status-badge active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge inactive">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <!-- Details Button (Eye Icon) -->
+                                    <a href="@Url.Action("Details", "Products", new { id = item.Id })" class="action-btn" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <!-- Edit Button -->
+                                    <a href="@Url.Action("Edit", "Products", new { id = item.Id })" class="action-btn" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <!-- Delete Form -->
+                                    <form action="@Url.Action("Delete", "Products")" method="post" style="display:inline;" data-confirm-delete>
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="action-btn delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 0)
+    {
+        <div class="pagination">
+            <span class="page-info">Showing @startItem to @endItem of @totalCount entries</span>
+
+            @if (currentPage > 1)
+            {
+                <a href="@Url.Action("Index", new { search = searchQuery, page = currentPage - 1 })" class="page-btn"><i class="fas fa-chevron-left"></i></a>
+            }
+            else
+            {
+                <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+            }
+
+            @{
+                int startPage = Math.Max(1, currentPage - 2);
+                int endPage = Math.Min(totalPages, currentPage + 2);
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <a href="@Url.Action("Index", new { search = searchQuery, page = i })" class="page-btn @(i == currentPage ? "active" : "")">@i</a>
+            }
+
+            @if (currentPage < totalPages)
+            {
+                <a href="@Url.Action("Index", new { search = searchQuery, page = currentPage + 1 })" class="page-btn"><i class="fas fa-chevron-right"></i></a>
+            }
+            else
+            {
+                <button class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
+            }
+        </div>
+    }
+</div>

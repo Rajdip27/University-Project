@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Dashboard Overview";
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="page-header">
+    <h1>Dashboard Overview</h1>
+    <p>Welcome back, John. Here's what's happening in your warehouse today.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card green">
+        <div class="stat-icon"><i class="fas fa-boxes-stacked"></i></div>
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value" data-target="1250">0</div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up" style="font-size:10px"></i> 12.5%</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+        <div class="stat-label">Warehouses</div>
+        <div class="stat-value" data-target="12">0</div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up" style="font-size:10px"></i> 3.2%</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-icon"><i class="fas fa-truck-field"></i></div>
+        <div class="stat-label">Suppliers</div>
+        <div class="stat-value" data-target="84">0</div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up" style="font-size:10px"></i> 8.1%</div>
+    </div>
+    <div class="stat-card rose">
+        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+        <div class="stat-label">Pending Orders</div>
+        <div class="stat-value" data-target="520">0</div>
+        <div class="stat-trend down"><i class="fas fa-arrow-down" style="font-size:10px"></i> 2.4%</div>
+    </div>
+</div>
+
+<!-- Charts and Tables -->
+<div class="content-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Revenue Analytics</h3>
+            <a href="#" class="panel-action">View Details</a>
+        </div>
+        <div style="height: 320px;">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Recent Orders</h3>
+            <a href="#" class="panel-action">See All</a>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#ORD-8341</td>
+                        <td><span class="status-badge delivered">Delivered</span></td>
+                        <td>$1,245</td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-8342</td>
+                        <td><span class="status-badge pending">Pending</span></td>
+                        <td>$890</td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-8343</td>
+                        <td><span class="status-badge shipped">Shipped</span></td>
+                        <td>$2,100</td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-8344</td>
+                        <td><span class="status-badge delivered">Delivered</span></td>
+                        <td>$450</td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-8345</td>
+                        <td><span class="status-badge pending">Pending</span></td>
+                        <td>$1,820</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // ---- Counter Animation ----
+        (function animateCounters() {
+            const counters = document.querySelectorAll('.stat-value[data-target]');
+            const duration = 1600;
+            counters.forEach(counter => {
+                const target = parseInt(counter.dataset.target, 10);
+                let start = null;
+                function step(timestamp) {
+                    if (!start) start = timestamp;
+                    const progress = Math.min((timestamp - start) / duration, 1);
+                    counter.textContent = Math.floor(target * progress).toLocaleString();
+                    if (progress < 1) requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            });
+        })();
+
+        // ---- Chart.js Initialization ----
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            // Create gradient for area fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(0, 201, 120, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 201, 120, 0.0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                        borderColor: '#00c978',
+                        backgroundColor: gradient,
+                        tension: 0.4, // Makes the line curved
+                        fill: true,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00c978',
+                        pointBorderColor: '#0a0f0d',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#162019',
+                            titleColor: '#e8efe9',
+                            bodyColor: '#7a9484',
+                            borderColor: '#1e3028',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    return '$' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#7a9484',
+                                font: { family: 'DM Sans' },
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#7a9484',
+                                font: { family: 'DM Sans' }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}
