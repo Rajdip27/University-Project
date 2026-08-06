@@ -24,5 +24,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
     }
 }
