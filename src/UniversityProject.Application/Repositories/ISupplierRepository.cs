@@ -1,11 +1,6 @@
 ﻿using Dapper;
-using InventorySystem.Models;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UniversityProject.Core.Entities;
 using UniversityProject.Infrastructure.Dapper;
 
 namespace UniversityProject.Application.Repositories;

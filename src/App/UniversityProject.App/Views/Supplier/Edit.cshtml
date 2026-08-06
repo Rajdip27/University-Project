@@ -1,6 +1,6 @@
-﻿@model UniversityProject.Core.Entities.Customer
+﻿@model UniversityProject.Core.Entities.Supplier
 @{
-    ViewData["Title"] = "Edit Customer";
+    ViewData["Title"] = "Edit Supplier";
     Layout = "_Layout";
 }
 
@@ -126,19 +126,30 @@
 </style>
 
 <div class="page-header">
-    <h1>Edit Customer</h1>
+    <h1>Edit Supplier</h1>
     <p>Update the details for <strong>@Model.Name</strong>.</p>
 </div>
 
 <div class="panel form-container">
-    <form asp-action="Edit" asp-controller="Customer" method="post" data-loader>
+    <form asp-action="Edit" asp-controller="Supplier" method="post" data-loader>
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
 
         <div class="form-grid">
             <div class="form-group">
-                <label class="form-label" asp-for="Name">Customer Name</label>
-                <input type="text" asp-for="Name" class="form-input" placeholder="e.g., John Doe" required>
+                <label class="form-label" asp-for="Name">Supplier Name</label>
+                <input type="text" asp-for="Name" class="form-input" placeholder="e.g., ABC Corp" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" asp-for="CompanyName">Company Name</label>
+                <input type="text" asp-for="CompanyName" class="form-input" placeholder="e.g., ABC Corporation Ltd.">
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" asp-for="ContactPerson">Contact Person</label>
+                <input type="text" asp-for="ContactPerson" class="form-input" placeholder="e.g., John Doe">
             </div>
             <div class="form-group">
                 <label class="form-label" asp-for="Phone">Phone Number</label>
@@ -149,7 +160,7 @@
         <div class="form-grid">
             <div class="form-group">
                 <label class="form-label" asp-for="Email">Email Address</label>
-                <input type="email" asp-for="Email" class="form-input" placeholder="e.g., customer@email.com">
+                <input type="email" asp-for="Email" class="form-input" placeholder="e.g., supplier@email.com">
             </div>
             <div class="form-group">
                 <label class="form-label" asp-for="OpeningBalance">Opening Balance ($)</label>
@@ -157,15 +168,33 @@
             </div>
         </div>
 
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" asp-for="TradeLicense">Trade License</label>
+                <input type="text" asp-for="TradeLicense" class="form-input" placeholder="Trade License No.">
+            </div>
+            <div class="form-group">
+                <label class="form-label" asp-for="TIN">TIN</label>
+                <input type="text" asp-for="TIN" class="form-input" placeholder="Tax Identification No.">
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" asp-for="BIN">BIN</label>
+                <input type="text" asp-for="BIN" class="form-input" placeholder="Business Identification No.">
+            </div>
+        </div>
+
         <div class="form-group">
             <label class="form-label" asp-for="Address">Address</label>
-            <textarea asp-for="Address" class="form-textarea" placeholder="Enter customer address..."></textarea>
+            <textarea asp-for="Address" class="form-textarea" placeholder="Enter supplier address..."></textarea>
         </div>
 
         <div class="form-actions">
-            <a href="@Url.Action("Index", "Customer")" class="btn-secondary">Cancel</a>
+            <a href="@Url.Action("Index", "Supplier")" class="btn-secondary">Cancel</a>
             <button type="submit" class="btn-primary">
-                <i class="fas fa-save"></i> Update Customer
+                <i class="fas fa-save"></i> Update Supplier
             </button>
         </div>
     </form>

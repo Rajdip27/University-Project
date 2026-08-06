@@ -1,4 +1,4 @@
-﻿using InventorySystem.Models;
+﻿using UniversityProject.Core.Entities;
 using UniversityProject.Core.Entities.BaseEntities;
 
 namespace UniversityProject.Core.Entities

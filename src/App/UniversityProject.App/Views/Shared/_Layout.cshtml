@@ -340,7 +340,7 @@
                 <a asp-controller="Products" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Products" ? "active" : "")">
                     <i class="fas fa-boxes-stacked"></i> Products
                 </a>
-                <a asp-controller="Suppliers" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Suppliers" ? "active" : "")">
+                <a asp-controller="Supplier" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Supplier" ? "active" : "")">
                     <i class="fas fa-truck-field"></i> Suppliers
                 </a>
                 <a asp-controller="Orders" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Orders" ? "active" : "")">
@@ -350,7 +350,7 @@
 
             <div class="nav-section">
                 <div class="nav-title">Management</div>
-                <a asp-controller="Customers" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Customers" ? "active" : "")">
+                <a asp-controller="Customer" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Customer" ? "active" : "")">
                     <i class="fas fa-users"></i> Customers
                 </a>
                 <a asp-controller="Reports" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Reports" ? "active" : "")">

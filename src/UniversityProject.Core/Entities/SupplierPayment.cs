@@ -1,7 +1,6 @@
-﻿using UniversityProject.Core.Entities;
-using UniversityProject.Core.Entities.BaseEntities;
+﻿using UniversityProject.Core.Entities.BaseEntities;
 
-namespace InventorySystem.Models;
+namespace UniversityProject.Core.Entities;
 
 public class SupplierPayment:AuditableEntity
 {

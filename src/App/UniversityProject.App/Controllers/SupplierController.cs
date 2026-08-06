@@ -1,8 +1,7 @@
-﻿using InventorySystem.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using UniversityProject.Application.Logging;
 using UniversityProject.Application.Repositories;
-using UniversityProject.Application.Services;
+using UniversityProject.Core.Entities;
 
 namespace UniversityProject.App.Controllers;
 
@@ -12,7 +11,7 @@ public class SupplierController(
 {
     #region List
 
-    public async Task<IActionResult> Index(string? search, int page = 1)
+    public async Task<IActionResult> Index(string search, int page = 1)
     {
         _logger.LogInfo($"Loading Supplier List. Search={search}, Page={page}");
 

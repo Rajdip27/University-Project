@@ -22,7 +22,7 @@ namespace UniversityProject.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("InventorySystem.Models.Supplier", b =>
+            modelBuilder.Entity("UniversityProject.Core.Entities.Supplier", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -81,7 +81,7 @@ namespace UniversityProject.Infrastructure.Migrations
                     b.ToTable("Suppliers");
                 });
 
-            modelBuilder.Entity("InventorySystem.Models.SupplierPayment", b =>
+            modelBuilder.Entity("UniversityProject.Core.Entities.SupplierPayment", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -1165,7 +1165,7 @@ namespace UniversityProject.Infrastructure.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("InventorySystem.Models.SupplierPayment", b =>
+            modelBuilder.Entity("UniversityProject.Core.Entities.SupplierPayment", b =>
                 {
                     b.HasOne("UniversityProject.Core.Entities.Purchase", "Purchase")
                         .WithMany("SupplierPayment")
@@ -1173,7 +1173,7 @@ namespace UniversityProject.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("InventorySystem.Models.Supplier", "Supplier")
+                    b.HasOne("UniversityProject.Core.Entities.Supplier", "Supplier")
                         .WithMany("SupplierPayment")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1275,7 +1275,7 @@ namespace UniversityProject.Infrastructure.Migrations
 
             modelBuilder.Entity("UniversityProject.Core.Entities.Purchase", b =>
                 {
-                    b.HasOne("InventorySystem.Models.Supplier", "Supplier")
+                    b.HasOne("UniversityProject.Core.Entities.Supplier", "Supplier")
                         .WithMany("Purchases")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1362,7 +1362,7 @@ namespace UniversityProject.Infrastructure.Migrations
 
             modelBuilder.Entity("UniversityProject.Core.Entities.SupplierLedger", b =>
                 {
-                    b.HasOne("InventorySystem.Models.Supplier", "Supplier")
+                    b.HasOne("UniversityProject.Core.Entities.Supplier", "Supplier")
                         .WithMany("SupplierLedgers")
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1371,7 +1371,7 @@ namespace UniversityProject.Infrastructure.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("InventorySystem.Models.Supplier", b =>
+            modelBuilder.Entity("UniversityProject.Core.Entities.Supplier", b =>
                 {
                     b.Navigation("Purchases");
 
