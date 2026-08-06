@@ -73,7 +73,7 @@ public class CustomerRepository : ICustomerRepository
     #region List
 
     public async Task<(List<Customer> Items, int TotalCount)> GetListAsync(
-        string? search,
+        string search,
         int pageNo,
         int pageSize)
     {
