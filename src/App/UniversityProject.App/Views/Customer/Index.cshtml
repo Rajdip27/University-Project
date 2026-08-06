@@ -182,7 +182,7 @@
 <div class="panel">
     <div class="panel-header">
         <h3>All Customers</h3>
-        <form action="@Url.Action("Index", "Customers")" method="get" class="topbar-search">
+        <form action="@Url.Action("Index", "Customer")" method="get" class="topbar-search">
             <i class="fas fa-search"></i>
             <input type="text" name="search" value="@searchQuery" placeholder="Search customers...">
         </form>
@@ -224,13 +224,13 @@
                             <td style="color: var(--accent); font-weight: 600;">$@item.OpeningBalance.ToString("N2")</td>
                             <td>
                                 <div class="table-actions">
-                                    <a href="@Url.Action("Details", "Customers", new { id = item.Id })" class="action-btn" title="View Details">
+                                    <a href="@Url.Action("Details", "Customer", new { id = item.Id })" class="action-btn" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="@Url.Action("Edit", "Customers", new { id = item.Id })" class="action-btn" title="Edit">
+                                    <a href="@Url.Action("Edit", "Customer", new { id = item.Id })" class="action-btn" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="@Url.Action("Delete", "Customers")" method="post" style="display:inline;" data-confirm-delete>
+                                    <form action="@Url.Action("Delete", "Customer")" method="post" style="display:inline;" data-confirm-delete>
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
                                         <button type="submit" class="action-btn delete" title="Delete">

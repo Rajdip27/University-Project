@@ -131,7 +131,7 @@
 </div>
 
 <div class="panel form-container">
-    <form asp-action="Create" asp-controller="Customers" method="post" data-loader>
+    <form asp-action="Create" asp-controller="Customer" method="post" data-loader>
         @Html.AntiForgeryToken()
 
         <div class="form-grid">
@@ -162,7 +162,7 @@
         </div>
 
         <div class="form-actions">
-            <a href="@Url.Action("Index", "Customers")" class="btn-secondary">Cancel</a>
+            <a href="@Url.Action("Index", "Customer")" class="btn-secondary">Cancel</a>
             <button type="submit" class="btn-primary">
                 <i class="fas fa-check"></i> Save Customer
             </button>
