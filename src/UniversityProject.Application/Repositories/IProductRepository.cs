@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,6 +13,7 @@ namespace UniversityProject.Application.Repositories;
 
 public interface IProductRepository
 {
+    Task<SelectList> GetDropdownAsync();
     Task<long> AddAsync(Product product);
     Task<bool> UpdateAsync(Product product);
     Task<bool> DeleteAsync(long id, long userId);
@@ -29,7 +31,20 @@ public class ProductRepository : IProductRepository
     {
         _connectionFactory = connectionFactory;
     }
+    public async Task<SelectList> GetDropdownAsync()
+    {
+        using var connection = _connectionFactory.CreateConnection();
 
+        var products = await connection.QueryAsync<Product>(
+            "sp_Product_Dropdown",
+            commandType: CommandType.StoredProcedure);
+
+        return new SelectList(
+            products,
+            "Id",
+            "ProductName"
+        );
+    }
     public async Task<long> AddAsync(Product product)
     {
         using var connection = _connectionFactory.CreateConnection();

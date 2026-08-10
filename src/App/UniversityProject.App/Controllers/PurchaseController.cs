@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UniversityProject.Application.Logging;
+using UniversityProject.Application.Repositories;
 using UniversityProject.Application.Services;
 using UniversityProject.Core.Entities;
 
@@ -7,6 +8,8 @@ namespace UniversityProject.App.Controllers;
 
 public class PurchaseController(
     IPurchaseRepository _purchaseService,
+    ISupplierRepository _supplierService,
+    IProductRepository _productService,
     IAppLogger<PurchaseController> _logger) : Controller
 {
     #region List
@@ -52,9 +55,13 @@ public class PurchaseController(
     #region Create
 
     [HttpGet]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
         _logger.LogInfo("Purchase Create Page");
+        ViewBag.Suppliers = await _supplierService.GetDropdownAsync();
+
+        ViewBag.Products = await _productService.GetDropdownAsync();
+        ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
 
         return View(new Purchase());
     }
@@ -103,6 +110,10 @@ public class PurchaseController(
     public async Task<IActionResult> Edit(long id)
     {
         var purchase = await _purchaseService.GetByIdAsync(id);
+        ViewBag.Suppliers = await _supplierService.GetDropdownAsync();
+
+        ViewBag.Products = await _productService.GetDropdownAsync();
+        ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
 
         if (purchase == null)
         {
@@ -151,6 +162,10 @@ public class PurchaseController(
     [HttpGet]
     public async Task<IActionResult> Details(long id)
     {
+        ViewBag.Suppliers = await _supplierService.GetDropdownAsync();
+
+        ViewBag.Products = await _productService.GetDropdownAsync();
+        ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
         var purchase = await _purchaseService.GetByIdAsync(id);
 
         if (purchase == null)
@@ -196,6 +211,32 @@ public class PurchaseController(
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> StockReport(
+    long? productId,
+    long? warehouseId,
+    DateTime? startDate,
+    DateTime? endDate)
+    {
+        _logger.LogInfo(
+            $"Loading Stock Ledger. " +
+            $"ProductId={productId}, " +
+            $"WarehouseId={warehouseId}, " +
+            $"StartDate={startDate}, " +
+            $"EndDate={endDate}");
+
+        var result = await _purchaseService.GetStockReportAsync(
+            productId,
+            warehouseId,
+            startDate,
+            endDate);
+
+        ViewBag.Products = await _productService.GetDropdownAsync();
+        ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
+
+        return View(result);
     }
 
     #endregion

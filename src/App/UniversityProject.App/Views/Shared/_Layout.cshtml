@@ -340,6 +340,9 @@
                 <a asp-controller="Products" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Products" ? "active" : "")">
                     <i class="fas fa-boxes-stacked"></i> Products
                 </a>
+                <a asp-controller="Purchase" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Purchase" ? "active" : "")">
+                   <i class="fas fa-file-invoice"></i>  Purchase
+                </a>
                 <a asp-controller="Supplier" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Supplier" ? "active" : "")">
                     <i class="fas fa-truck-field"></i> Suppliers
                 </a>
@@ -352,6 +355,9 @@
                 <div class="nav-title">Management</div>
                 <a asp-controller="Customer" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Customer" ? "active" : "")">
                     <i class="fas fa-users"></i> Customers
+                </a>
+                <a asp-controller="Purchase" asp-action="StockReport" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Purchase" ? "active" : "")">
+                    <i class="fas fa-receipt"></i> Purchase Report
                 </a>
                 <a asp-controller="Reports" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Reports" ? "active" : "")">
                     <i class="fas fa-chart-pie"></i> Reports

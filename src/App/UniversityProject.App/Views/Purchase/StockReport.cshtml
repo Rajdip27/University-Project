@@ -1,0 +1,351 @@
+﻿@using UniversityProject.Application.ViewModel
+@model StockReportDto
+@{
+    ViewData["Title"] = "Stock Ledger";
+    var products = ViewBag.Products as IEnumerable<SelectListItem>;
+    var warehouses = ViewBag.Warehouses as IEnumerable<SelectListItem>;
+}
+
+<style>
+    /* Ensures native dropdowns and date pickers render in dark mode */
+    html, body {
+        color-scheme: dark;
+    }
+
+    .form-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        height: 52px;
+        padding: 14px 16px;
+        background-color: var(--bg-deep) !important;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--fg) !important;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+    .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        padding-right: 40px;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a9484' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+    }
+
+        .form-select option {
+            background-color: var(--bg-deep) !important;
+            color: var(--fg) !important;
+        }
+
+    /* Summary Tiles */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin: 30px 0;
+    }
+
+    .summary-tile {
+        background: var(--bg-deep);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .summary-tile h6 {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--fg-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .summary-tile h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--fg);
+            margin: 0;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .summary-tile .icon-bg {
+            position: absolute;
+            right: -10px;
+            bottom: -15px;
+            font-size: 5rem;
+            opacity: 0.1;
+            color: var(--accent);
+        }
+
+        .summary-tile.danger .icon-bg {
+            color: #f43f5e;
+        }
+
+    /* Table Styling */
+    .table-wrapper {
+        border-radius: 12px;
+        border: 1.5px solid var(--border);
+        overflow: hidden;
+    }
+
+    .ledger-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .ledger-table thead {
+            background: var(--bg-panel);
+        }
+
+        .ledger-table th {
+            padding: 16px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--fg-muted);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .ledger-table td {
+            padding: 14px 16px;
+            color: var(--fg);
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .ledger-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+    .badge-theme {
+        background: rgba(122, 148, 132, 0.15);
+        color: var(--accent);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .text-success { color: var(--accent) !important; font-weight: 700; }
+    .text-danger { color: #f43f5e !important; font-weight: 700; }
+    .text-muted { color: var(--fg-muted) !important; }
+
+    .scrollable-table {
+        max-height: 65vh;
+        overflow-y: auto;
+    }
+    /* Custom Scrollbar for dark mode */
+    .scrollable-table::-webkit-scrollbar { width: 8px; }
+    .scrollable-table::-webkit-scrollbar-track { background: var(--bg-deep); }
+    .scrollable-table::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .scrollable-table::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #008f55);
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--fg-muted);
+        border: 1px solid var(--border);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+        border-color: var(--accent);
+        color: var(--fg);
+    }
+
+    @@media (max-width: 992px) {
+        .form-grid, .summary-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @@media (max-width: 576px) {
+        .form-grid, .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <h1>Stock Ledger Report</h1>
+    <p>View stock movements and balances across warehouses.</p>
+</div>
+
+<div class="panel form-container">
+    
+    <!-- Filter Section -->
+    <form method="get" asp-action="StockReport" class="form-grid">
+        <div class="form-group">
+            <label class="form-label">Product</label>
+            <select name="productId" class="form-select" asp-items="products">
+                <option value="">All Products</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Warehouse</label>
+            <select name="warehouseId" class="form-select" asp-items="warehouses">
+                <option value="">All Warehouses</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="date" name="startDate" class="form-input" />
+        </div>
+        <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="date" name="endDate" class="form-input" />
+        </div>
+        <div class="form-group" style="display: flex; align-items: flex-end;">
+            <div style="display: flex; gap: 12px; width: 100%;">
+                <button type="submit" class="btn-primary" style="flex: 1; justify-content: center;">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+                <a href="@Url.Action("StockReport")" class="btn-secondary" style="flex: 1; justify-content: center;">
+                    <i class="fas fa-redo"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Summary Tiles -->
+    <div class="summary-grid">
+        <div class="summary-tile">
+            <i class="fas fa-boxes icon-bg"></i>
+            <h6>Opening Qty</h6>
+            <h3>@Model?.OpeningQty.ToString("N2")</h3>
+        </div>
+        <div class="summary-tile">
+            <i class="fas fa-arrow-down icon-bg"></i>
+            <h6>Total In</h6>
+            <h3 class="text-success">@Model?.TotalIn.ToString("N2")</h3>
+        </div>
+        <div class="summary-tile danger">
+            <i class="fas fa-arrow-up icon-bg"></i>
+            <h6>Total Out</h6>
+            <h3 class="text-danger">@Model?.TotalOut.ToString("N2")</h3>
+        </div>
+        <div class="summary-tile">
+            <i class="fas fa-calculator icon-bg"></i>
+            <h6>Closing Qty</h6>
+            <h3>@Model?.ClosingQty.ToString("N2")</h3>
+        </div>
+    </div>
+
+    <!-- Detailed Ledger Table -->
+    <div class="table-wrapper">
+        <div class="scrollable-table">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Reference</th>
+                        <th style="text-align: right;">Stock In</th>
+                        <th style="text-align: right;">Stock Out</th>
+                        <th style="text-align: right;">Unit Cost</th>
+                        <th style="text-align: right;">Balance Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.Transactions != null && Model.Transactions.Any())
+                    {
+                        foreach (var t in Model.Transactions)
+                        {
+                            <tr>
+                                <td>@t.TransactionDate.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    <div style="font-weight: 600;">@t.ProductName</div>
+                                    <small class="text-muted">@t.ProductCode</small>
+                                </td>
+                                <td>@t.WarehouseName</td>
+                                <td>
+                                    <span class="badge-theme">@t.ReferenceType</span>
+                                    <small class="text-muted" style="margin-left: 8px;">#@t.ReferenceId</small>
+                                </td>
+                                <td style="text-align: right;" class="text-success">
+                                    @(t.StockIn > 0 ? t.StockIn.ToString("N2") : "0.00")
+                                </td>
+                                <td style="text-align: right;" class="text-danger">
+                                    @(t.StockOut > 0 ? t.StockOut.ToString("N2") : "0.00")
+                                </td>
+                                <td style="text-align: right;" class="text-muted">$@t.UnitCost.ToString("N2")</td>
+                                <td style="text-align: right; font-weight: 700;">@t.RunningBalance.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px 0;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.5; margin-bottom: 10px; display: block;"></i>
+                                <span class="text-muted">No transactions found. Apply filters to view data.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

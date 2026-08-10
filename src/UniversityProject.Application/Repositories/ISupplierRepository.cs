@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
 using UniversityProject.Core.Entities;
 using UniversityProject.Infrastructure.Dapper;
@@ -7,6 +8,7 @@ namespace UniversityProject.Application.Repositories;
 
 public interface ISupplierRepository
 {
+    Task<SelectList> GetDropdownAsync();
     Task<long> SaveAsync(Supplier supplier);
     Task<Supplier> GetByIdAsync(long supplierId);
     Task<(List<Supplier> Items, int TotalCount)> GetListAsync(
@@ -23,6 +25,22 @@ public class SupplierRepository : ISupplierRepository
     {
         _connectionFactory = connectionFactory;
     }
+
+    public async Task<SelectList> GetDropdownAsync()
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        var suppliers = await connection.QueryAsync<Supplier>(
+            "sp_Supplier_Dropdown",
+            commandType: CommandType.StoredProcedure);
+
+        return new SelectList(
+            suppliers,
+            "Id",
+            "Name"
+        );
+    }
+
 
     #region Save
 

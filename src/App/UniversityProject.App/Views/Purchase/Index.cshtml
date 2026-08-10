@@ -2,6 +2,12 @@
 @{
     ViewData["Title"] = "Purchase List";
     Layout = "_Layout";
+
+    // Pagination variables passed from the controller
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalItems = ViewBag.TotalItems ?? 0;
+    int pageSize = ViewBag.PageSize ?? 10;
 }
 
 <style>
@@ -56,6 +62,63 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(0, 201, 120, 0.3);
         }
+
+    /* --- Pagination Styles --- */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .pagination-info {
+        color: var(--fg-muted);
+        font-size: 14px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .page-btn {
+        min-width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        background: var(--bg-deep);
+        color: var(--fg-muted);
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 0 12px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+        .page-btn:hover:not(.disabled) {
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+
+        .page-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .page-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 </style>
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
@@ -63,7 +126,7 @@
         <h1>Purchase List</h1>
         <p>Manage your supplier purchases and track inventory inflow.</p>
     </div>
-    <a href="@Url.Action("Create", "Purchases")" class="btn-primary">
+    <a href="@Url.Action("Create", "Purchase")" class="btn-primary">
         <i class="fas fa-plus"></i> New Purchase
     </a>
 </div>
@@ -104,9 +167,9 @@
                             <td>$@item.GrandTotal.ToString("N2")</td>
                             <td>
                                 <div class="table-actions">
-                                    <a href="@Url.Action("Details", "Purchases", new { id = item.Id })" class="action-btn" title="View Details"><i class="fas fa-eye"></i></a>
-                                    <a href="@Url.Action("Edit", "Purchases", new { id = item.Id })" class="action-btn" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <form action="@Url.Action("Delete", "Purchases")" method="post" style="display:inline;" data-confirm-delete>
+                                    <a href="@Url.Action("Details", "Purchase", new { id = item.Id })" class="action-btn" title="View Details"><i class="fas fa-eye"></i></a>
+                                    <a href="@Url.Action("Edit", "Purchase", new { id = item.Id })" class="action-btn" title="Edit"><i class="fas fa-edit"></i></a>
+                                    <form action="@Url.Action("Delete", "Purchase")" method="post" style="display:inline;" data-confirm-delete>
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
                                         <button type="submit" class="action-btn delete" title="Delete"><i class="fas fa-trash"></i></button>
@@ -119,4 +182,75 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination Footer -->
+    @if (totalItems > 0)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Showing <strong>@((currentPage - 1) * pageSize + 1)</strong> to <strong>@Math.Min(currentPage * pageSize, totalItems)</strong> of <strong>@totalItems</strong> entries
+            </div>
+            <div class="pagination-controls">
+                <!-- Previous Button -->
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Index", "Purchase", new { page = currentPage - 1 })" class="page-btn">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="page-btn disabled"><i class="fas fa-chevron-left"></i></button>
+                }
+
+                <!-- Page Numbers (Logic to show limited numbers e.g., 1 2 ... 4 5 6) -->
+                @{
+                    int startPage = Math.Max(1, currentPage - 2);
+                    int endPage = Math.Min(totalPages, currentPage + 2);
+
+                    if (startPage > 1)
+                    {
+                        <a href="@Url.Action("Index", "Purchase", new { page = 1 })" class="page-btn">1</a>
+                        if (startPage > 2)
+                        {
+                            <span class="page-btn disabled">...</span>
+                        }
+                    }
+
+                    for (int i = startPage; i <= endPage; i++)
+                    {
+                        if (i == currentPage)
+                        {
+                            <span class="page-btn active">@i</span>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Purchase", new { page = i })" class="page-btn">@i</a>
+                        }
+                    }
+
+                    if (endPage < totalPages)
+                    {
+                        if (endPage < totalPages - 1)
+                        {
+                            <span class="page-btn disabled">...</span>
+                        }
+                        <a href="@Url.Action("Index", "Purchase", new { page = totalPages })" class="page-btn">@totalPages</a>
+                    }
+                }
+
+                <!-- Next Button -->
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Index", "Purchase", new { page = currentPage + 1 })" class="page-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="page-btn disabled"><i class="fas fa-chevron-right"></i></button>
+                }
+            </div>
+        </div>
+    }
 </div>

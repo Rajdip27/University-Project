@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
 using UniversityProject.Core.Entities;
 using UniversityProject.Infrastructure.Dapper;
@@ -15,6 +16,7 @@ public interface ICustomerRepository
         int pageSize);
 
     Task<bool> DeleteAsync(long customerId, long deletedBy);
+    Task<SelectList> GetDropdownAsync();
 }
 public class CustomerRepository : ICustomerRepository
 {
@@ -94,6 +96,21 @@ public class CustomerRepository : ICustomerRepository
         var totalCount = await multi.ReadFirstAsync<int>();
 
         return (customers, totalCount);
+    }
+
+    public async Task<SelectList> GetDropdownAsync()
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        var customers = await connection.QueryAsync<Customer>(
+            "sp_Customer_Dropdown",
+            commandType: CommandType.StoredProcedure);
+
+        return new SelectList(
+            customers,
+            "Id",
+            "Name"
+        );
     }
 
     #endregion

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using UniversityProject.Application.ViewModel;
 using UniversityProject.Core.Entities;
 using UniversityProject.Infrastructure.Dapper;
 
@@ -13,6 +15,7 @@ namespace UniversityProject.Application.Services;
 
 public interface IPurchaseRepository
 {
+    Task<SelectList> GetDropdownAsync();
     Task<long> SaveAsync(Purchase purchase);
     Task<Purchase> GetByIdAsync(long purchaseId);
     Task<(List<Purchase> Items, int TotalCount)> GetListAsync(
@@ -22,6 +25,12 @@ public interface IPurchaseRepository
         int pageNo,
         int pageSize);
     Task<bool> DeleteAsync(long purchaseId, long deletedBy);
+
+    Task<StockReportDto> GetStockReportAsync(
+    long? productId,
+    long? warehouseId,
+    DateTime? startDate,
+    DateTime? endDate);
 }
 
 public class PurchaseRepository : IPurchaseRepository
@@ -32,7 +41,56 @@ public class PurchaseRepository : IPurchaseRepository
     {
         _connectionFactory = connectionFactory;
     }
+    public async Task<StockReportDto> GetStockReportAsync(
+    long? productId,
+    long? warehouseId,
+    DateTime? startDate,
+    DateTime? endDate)
+    {
+        using var connection = _connectionFactory.CreateConnection();
 
+        var parameters = new DynamicParameters();
+
+        parameters.Add("@ProductId", productId);
+        parameters.Add("@WarehouseId", warehouseId);
+        parameters.Add("@StartDate", startDate);
+        parameters.Add("@EndDate", endDate);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_StockLedger_Report",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        // Result Set 1
+        var summary = await multi.ReadFirstOrDefaultAsync<StockReportDto>();
+
+        // Result Set 2
+        var transactions = (await multi.ReadAsync<StockTransactionDto>())
+            .ToList();
+
+        if (summary == null)
+        {
+            summary = new StockReportDto();
+        }
+
+        summary.Transactions = transactions;
+
+        return summary;
+    }
+    public async Task<SelectList> GetDropdownAsync()
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        var warehouses = await connection.QueryAsync<Warehouse>(
+            "sp_Warehouse_Dropdown",
+            commandType: CommandType.StoredProcedure);
+
+        return new SelectList(
+            warehouses,
+            "Id",
+            "Name"
+        );
+    }
     #region Save
 
     public async Task<long> SaveAsync(Purchase purchase)
@@ -107,7 +165,7 @@ public class PurchaseRepository : IPurchaseRepository
     #region List
 
     public async Task<(List<Purchase> Items, int TotalCount)> GetListAsync(
-        string search,
+        string? search,
         DateTime? fromDate,
         DateTime? toDate,
         int pageNo,
@@ -115,24 +173,58 @@ public class PurchaseRepository : IPurchaseRepository
     {
         using var connection = _connectionFactory.CreateConnection();
 
+        var parameters = new DynamicParameters();
+
+        parameters.Add("@Search", search);
+        parameters.Add("@FromDate", fromDate);
+        parameters.Add("@ToDate", toDate);
+        parameters.Add("@PageNo", pageNo);
+        parameters.Add("@PageSize", pageSize);
+
         using var multi = await connection.QueryMultipleAsync(
             "sp_Purchase_List",
-            new
-            {
-                Search = search,
-                FromDate = fromDate,
-                ToDate = toDate,
-                PageNo = pageNo,
-                PageSize = pageSize
-            },
+            parameters,
             commandType: CommandType.StoredProcedure);
 
-        var list = (await multi.ReadAsync<Purchase>()).ToList();
+        // First result set
+        var items = (await multi.ReadAsync<PurchaseListDto>())
+            .ToList();
 
-        var totalCount = await multi.ReadFirstAsync<int>();
+        // Second result set
+        var totalCount = await multi.ReadFirstOrDefaultAsync<int>();
 
-        return (list, totalCount);
+        // Map Supplier and Warehouse navigation properties
+        var purchases = items.Select(x => new Purchase
+        {
+            Id = x.Id,
+            InvoiceNo = x.InvoiceNo,
+            SupplierId = x.SupplierId,
+            WarehouseId = x.WarehouseId,
+            PurchaseDate = x.PurchaseDate,
+            Discount = x.Discount,
+            Tax = x.Tax,
+            Vat = x.Vat,
+            TransportCost = x.TransportCost,
+            GrandTotal = x.GrandTotal,
+            CreatedDate = x.CreatedDate,
+
+            Supplier = new Supplier
+            {
+                Id = x.SupplierId,
+                Name = x.SupplierName
+            },
+
+            Warehouse = new Warehouse
+            {
+                Id = x.WarehouseId,
+                Name = x.WarehouseName
+            }
+
+        }).ToList();
+
+        return (purchases, totalCount);
     }
+
 
     #endregion
 

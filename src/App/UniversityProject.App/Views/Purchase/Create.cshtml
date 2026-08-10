@@ -198,7 +198,7 @@
 </div>
 
 <div class="panel form-container">
-    <form asp-action="Create" asp-controller="Purchases" method="post" data-loader>
+    <form asp-action="Create" asp-controller="Purchase" method="post" data-loader>
         @Html.AntiForgeryToken()
 
         <div class="form-grid">
@@ -297,7 +297,7 @@
         </div>
 
         <div class="form-actions">
-            <a href="@Url.Action("Index", "Purchases")" class="btn-secondary">Cancel</a>
+            <a href="@Url.Action("Index", "Purchase")" class="btn-secondary">Cancel</a>
             <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Save Purchase</button>
         </div>
     </form>

@@ -2,10 +2,17 @@
 @{
     ViewData["Title"] = "Edit Purchase";
     Layout = "_Layout";
+
+    int currentItemsCount = Model.PurchaseItem?.Count ?? 0;
+    int nextRowIndex = currentItemsCount > 0 ? currentItemsCount : 1;
 }
 
 <style>
-    /* Same styles as Create (condensed here for brevity, copy from Create.cshtml) */
+    /* CRITICAL FIX: Tells the browser to render native dropdowns in dark mode */
+    html, body {
+        color-scheme: dark;
+    }
+
     .form-container {
         max-width: 1100px;
         margin: 0 auto;
@@ -32,14 +39,17 @@
 
     .form-input, .form-select {
         width: 100%;
+        height: 52px;
         padding: 14px 16px;
-        background: var(--bg-deep);
+        background-color: var(--bg-deep) !important;
         border: 1.5px solid var(--border);
         border-radius: 12px;
-        color: var(--fg);
+        color: var(--fg) !important;
         font-size: 14px;
         outline: none;
         transition: all 0.3s ease;
+        box-sizing: border-box;
+        font-family: 'DM Sans', sans-serif;
     }
 
         .form-input:focus, .form-select:focus {
@@ -49,21 +59,54 @@
 
     .form-select {
         appearance: none;
+        -webkit-appearance: none;
         cursor: pointer;
+        padding-right: 40px;
+        /* Custom Dropdown Arrow */
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a9484' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
     }
 
-    .item-table input {
+        .form-select option {
+            background-color: var(--bg-deep) !important;
+            color: var(--fg) !important;
+        }
+
+    /* Table specific inputs */
+    .item-table input, .item-table select {
+        height: 42px;
         background: var(--bg-deep);
         border: 1px solid var(--border);
         border-radius: 8px;
         color: var(--fg);
         padding: 10px;
         width: 100%;
+        box-sizing: border-box;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        outline: none;
     }
 
-        .item-table input:focus {
-            outline: none;
+        .item-table input:focus, .item-table select:focus {
             border-color: var(--accent);
+        }
+
+    .item-table select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        padding-right: 30px;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a9484' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 14px;
+    }
+
+        .item-table select option {
+            background-color: var(--bg-deep) !important;
+            color: var(--fg) !important;
         }
 
     .remove-row-btn {
@@ -74,6 +117,10 @@
         height: 36px;
         border-radius: 8px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
     }
 
     .totals-grid {
@@ -157,7 +204,7 @@
 </div>
 
 <div class="panel form-container">
-    <form asp-action="Edit" asp-controller="Purchases" method="post" data-loader>
+    <form asp-action="Edit" asp-controller="Purchase" method="post" data-loader>
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
 
@@ -200,6 +247,7 @@
                             <tr class="item-row" style="border-top: 1px solid var(--border);">
                                 <td style="padding: 10px;">
                                     <select name="PurchaseItem[@i].ProductId" class="form-control product-select" style="width:100%" required>
+                                        <option value="">Select Product</option>
                                         @if (ViewBag.Products != null)
                                         {
                                             foreach (var p in (SelectList)ViewBag.Products)
@@ -220,7 +268,9 @@
                                 <td style="padding: 10px;"><input type="number" name="PurchaseItem[@i].Quantity" class="form-control qty-input" min="1" value="@Model.PurchaseItem[i].Quantity" required oninput="calculateRow(this)"></td>
                                 <td style="padding: 10px;"><input type="number" name="PurchaseItem[@i].UnitPrice" class="form-control price-input" min="0" step="0.01" value="@Model.PurchaseItem[i].UnitPrice" required oninput="calculateRow(this)"></td>
                                 <td style="padding: 10px; font-weight:600; color: var(--accent);"><span class="row-total">$@Model.PurchaseItem[i].Total.ToString("N2")</span></td>
-                                <td style="padding: 10px; text-align: center;"><button type="button" class="remove-row-btn" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
+                                <td style="padding: 10px; text-align: center;">
+                                    <button type="button" class="remove-row-btn" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+                                </td>
                             </tr>
                         }
                     }
@@ -242,7 +292,9 @@
                             <td style="padding: 10px;"><input type="number" name="PurchaseItem[0].Quantity" class="form-control qty-input" min="1" value="1" required oninput="calculateRow(this)"></td>
                             <td style="padding: 10px;"><input type="number" name="PurchaseItem[0].UnitPrice" class="form-control price-input" min="0" step="0.01" value="0" required oninput="calculateRow(this)"></td>
                             <td style="padding: 10px; font-weight:600; color: var(--accent);"><span class="row-total">$0.00</span></td>
-                            <td style="padding: 10px; text-align: center;"><button type="button" class="remove-row-btn" onclick="removeRow(this)"><i class="fas fa-times"></i></button></td>
+                            <td style="padding: 10px; text-align: center;">
+                                <button type="button" class="remove-row-btn" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -282,29 +334,66 @@
         </div>
 
         <div class="form-actions">
-            <a href="@Url.Action("Index", "Purchases")" class="btn-secondary">Cancel</a>
+            <a href="@Url.Action("Index", "Purchase")" class="btn-secondary">Cancel</a>
             <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update Purchase</button>
         </div>
     </form>
 </div>
 
+<!-- Hidden Template for Cloning (Always blank) -->
+<template id="rowTemplate">
+    <tr class="item-row" style="border-top: 1px solid var(--border);">
+        <td style="padding: 10px;">
+            <select name="PurchaseItem[0].ProductId" class="form-control product-select" style="width:100%" required>
+                <option value="">Select Product</option>
+                @if (ViewBag.Products != null)
+                {
+                    foreach (var p in (SelectList)ViewBag.Products)
+                    {
+                        <option value="@p.Value">@p.Text</option>
+                    }
+                }
+            </select>
+        </td>
+        <td style="padding: 10px;"><input type="number" name="PurchaseItem[0].Quantity" class="form-control qty-input" min="1" value="1" required oninput="calculateRow(this)"></td>
+        <td style="padding: 10px;"><input type="number" name="PurchaseItem[0].UnitPrice" class="form-control price-input" min="0" step="0.01" value="0" required oninput="calculateRow(this)"></td>
+        <td style="padding: 10px; font-weight:600; color: var(--accent);"><span class="row-total">$0.00</span></td>
+        <td style="padding: 10px; text-align: center;">
+            <button type="button" class="remove-row-btn" onclick="removeRow(this)"><i class="fas fa-times"></i></button>
+        </td>
+    </tr>
+</template>
+
 @section Scripts {
     <script>
-        let rowIndex = @Model.PurchaseItem?.Count ?? 1;
+        let rowIndex = @currentItemsCount;
+        if (rowIndex === 0) rowIndex = 1; // Ensure next row index is 1 if no items exist initially
+
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateGrandTotal();
+        });
 
         function addRow() {
             const tbody = document.getElementById('itemList');
-            const firstRow = tbody.querySelector('.item-row');
-            const newRow = firstRow.cloneNode(true);
+            const template = document.getElementById('rowTemplate');
 
+            // Clone the inert template content (always blank)
+            const newRow = template.content.firstElementChild.cloneNode(true);
+
+            // Update indices for model binding
             newRow.querySelectorAll('[name]').forEach(input => {
-                input.name = input.name.replace(/\[\d+\]/, '[' + rowIndex + ']');
-                if (input.type === 'hidden' && input.name.includes('.Id')) input.value = '';
-                if (input.type === 'number') input.value = input.classList.contains('qty-input') ? 1 : 0;
-                if (input.tagName === 'SELECT') input.selectedIndex = 0;
+                input.name = input.name.replace('[0]', '[' + rowIndex + ']');
+                if (input.type === 'number') {
+                    input.value = input.classList.contains('qty-input') ? 1 : 0;
+                }
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0; // Explicitly reset dropdown
+                }
             });
 
             newRow.querySelector('.row-total').textContent = '$0.00';
+
+            // Append to table
             tbody.appendChild(newRow);
             rowIndex++;
             calculateGrandTotal();
@@ -354,7 +443,5 @@
             document.querySelector('#grandTotalDisplay').textContent = '$' + grandTotal.toFixed(2);
             document.querySelector('#grandTotalInput').value = grandTotal.toFixed(2);
         }
-
-        calculateGrandTotal();
     </script>
 }
