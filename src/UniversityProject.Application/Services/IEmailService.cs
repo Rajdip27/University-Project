@@ -74,7 +74,7 @@ public class EmailService(IConfiguration _config) : IEmailService
 
             await smtp.SendMailAsync(message);
         }
-        catch (Exception ex)
+        catch (Exception )
         {
 
             throw;

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using static UniversityProject.Core.Entities.Auth.IdentityModel;
-using static UniversityProject.Core.Entities.Auth.IdentityModel;
 
 namespace UniversityProject.Infrastructure.Configuration.AuthConfiguration;
 

@@ -165,7 +165,7 @@ public class PurchaseRepository : IPurchaseRepository
     #region List
 
     public async Task<(List<Purchase> Items, int TotalCount)> GetListAsync(
-        string? search,
+        string search,
         DateTime? fromDate,
         DateTime? toDate,
         int pageNo,

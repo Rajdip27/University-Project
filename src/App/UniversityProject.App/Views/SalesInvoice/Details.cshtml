@@ -1,0 +1,272 @@
+﻿@using UniversityProject.Application.ViewModel
+@model SalesInvoiceDetailsViewModel
+@{
+    ViewData["Title"] = "Sales Invoice Details";
+    Layout = "_Layout";
+
+    // Calculate Subtotal from items for display purposes
+    decimal subTotal = Model.Items?.Sum(x => x.Total) ?? 0;
+    decimal taxAmount = subTotal * (Model.Tax / 100);
+    decimal vatAmount = subTotal * (Model.Vat / 100);
+}
+
+<style>
+    .details-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .detail-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        color: var(--fg);
+        padding: 14px 16px;
+        background-color: var(--bg-deep) !important;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+    }
+
+        .detail-value.full-width {
+            grid-column: 1 / -1;
+        }
+
+    .totals-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+        margin-top: 32px;
+        align-items: start;
+    }
+
+    .totals-box {
+        background: var(--bg-deep);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        color: var(--fg-muted);
+        font-size: 14px;
+    }
+
+        .total-row.grand {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--fg);
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-bottom: 12px;
+        }
+
+        .total-row.due {
+            color: var(--accent-warm);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .total-row.paid {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+    .detail-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #008f55);
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 201, 120, 0.3);
+        }
+
+    .btn-secondary {
+        background: transparent;
+        color: var(--fg-muted);
+        border: 1px solid var(--border);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+        .btn-secondary:hover {
+            border-color: var(--fg-muted);
+            color: var(--fg);
+        }
+
+    .page-header {
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    @@media (max-width: 768px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .totals-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            max-width: 100%;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>Invoice Details</h1>
+        <p>Full information for Invoice <strong>@Model.InvoiceNo</strong>.</p>
+    </div>
+    <a href="@Url.Action("Print", "SalesInvoice", new { id = Model.Id })" class="btn-secondary" target="_blank">
+        <i class="fas fa-print"></i> Print Invoice
+    </a>
+</div>
+
+<div class="panel details-container">
+    <div class="details-grid">
+        <div class="detail-group">
+            <span class="detail-label">Customer Name</span>
+            <div class="detail-value">@Model.CustomerName</div>
+        </div>
+        <div class="detail-group">
+            <span class="detail-label">Invoice Date</span>
+            <div class="detail-value">@Model.InvoiceDate.ToString("MMM dd, yyyy")</div>
+        </div>
+        <div class="detail-group">
+            <span class="detail-label">Phone Number</span>
+            <div class="detail-value">@(string.IsNullOrEmpty(Model.CustomerPhone) ? "N/A" : Model.CustomerPhone)</div>
+        </div>
+        <div class="detail-group">
+            <span class="detail-label">Email Address</span>
+            <div class="detail-value">@(string.IsNullOrEmpty(Model.CustomerEmail) ? "N/A" : Model.CustomerEmail)</div>
+        </div>
+        <div class="detail-group" style="grid-column: 1 / -1;">
+            <span class="detail-label">Customer Address</span>
+            <div class="detail-value full-width" style="min-height: 52px; white-space: pre-wrap;">
+                @(string.IsNullOrEmpty(Model.CustomerAddress) ? "N/A" : Model.CustomerAddress)
+            </div>
+        </div>
+    </div>
+
+    <h3 style="font-family: 'Space Grotesk'; margin-bottom: 15px;">Purchased Items</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>SKU</th>
+                    <th>Barcode</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items == null || !Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--fg-muted);">No items found for this invoice.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td><strong>@item.ProductName</strong></td>
+                            <td>@(string.IsNullOrEmpty(item.Sku) ? "N/A" : item.Sku)</td>
+                            <td>@(string.IsNullOrEmpty(item.Barcode) ? "N/A" : item.Barcode)</td>
+                            <td>@item.Quantity</td>
+                            <td>$@item.UnitPrice.ToString("N2")</td>
+                            <td style="text-align: right; color: var(--accent); font-weight: 600;">$@item.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="totals-grid">
+        <div></div> <!-- Spacer -->
+        <div class="totals-box">
+            <div class="total-row"><span>Subtotal:</span> <span>$@subTotal.ToString("N2")</span></div>
+            <div class="total-row"><span>Tax (@Model.Tax%):</span> <span>$@taxAmount.ToString("N2")</span></div>
+            <div class="total-row"><span>VAT (@Model.Vat%):</span> <span>$@vatAmount.ToString("N2")</span></div>
+            <div class="total-row"><span>Discount:</span> <span>-$@Model.Discount.ToString("N2")</span></div>
+            <div class="total-row grand"><span>Grand Total:</span> <span>$@Model.GrandTotal.ToString("N2")</span></div>
+            <div class="total-row paid"><span>Paid Amount:</span> <span>$@Model.PaidAmount.ToString("N2")</span></div>
+            <div class="total-row due"><span>Due Amount:</span> <span>$@Model.DueAmount.ToString("N2")</span></div>
+        </div>
+    </div>
+
+    <div class="detail-actions">
+        <a href="@Url.Action("Index", "SalesInvoice")" class="btn-secondary"><i class="fas fa-arrow-left"></i> Back to List</a>
+        @if (Model.PaidAmount <= 0)
+        {
+            <a href="@Url.Action("Edit", "SalesInvoice", new { id = Model.Id })" class="btn-primary"><i class="fas fa-edit"></i> Edit Invoice</a>
+        }
+        
+    </div>
+</div>

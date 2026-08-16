@@ -110,7 +110,7 @@ public class ProductRepository : IProductRepository
         return row > 0;
     }
 
-    public async Task<Product?> GetByIdAsync(long id)
+    public async Task<Product> GetByIdAsync(long id)
     {
         using var connection = _connectionFactory.CreateConnection();
 
@@ -124,7 +124,7 @@ public class ProductRepository : IProductRepository
     }
 
     public async Task<(IReadOnlyList<Product> Items, int TotalCount)> GetListAsync(
-        string? search,
+        string search,
         int pageNo,
         int pageSize)
     {

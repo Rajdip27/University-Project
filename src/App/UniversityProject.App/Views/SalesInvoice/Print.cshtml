@@ -1,0 +1,308 @@
+﻿@model UniversityProject.Application.ViewModel.SalesInvoiceDetailsViewModel
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Print Invoice";
+
+    decimal subTotal = Model.Items?.Sum(x => x.Total) ?? 0;
+    decimal taxAmount = subTotal * (Model.Tax / 100);
+    decimal vatAmount = subTotal * (Model.Vat / 100);
+}
+
+<!-- Include html2pdf library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+    /* Toolbar with the Download button */
+    .pdf-toolbar {
+        max-width: 800px;
+        margin: 20px auto;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-pdf {
+        background: linear-gradient(135deg, var(--accent), #008f55);
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 201, 120, 0.3);
+        }
+
+    /* ==================================================
+           SCOPED INVOICE STYLES (White Paper)
+           ================================================== */
+    #invoice-paper {
+        background: #ffffff;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto 40px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border-radius: 4px;
+        font-family: 'Arial', sans-serif; /* Standard font for PDF */
+    }
+
+        #invoice-paper .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        #invoice-paper .company-info h2 {
+            color: #008f55;
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+
+        #invoice-paper .company-info p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        #invoice-paper .invoice-meta {
+            text-align: right;
+        }
+
+            #invoice-paper .invoice-meta h1 {
+                margin: 0;
+                color: #333;
+                font-size: 32px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            #invoice-paper .invoice-meta p {
+                margin: 5px 0;
+                font-size: 14px;
+                color: #555;
+            }
+
+        #invoice-paper .bill-to {
+            margin-bottom: 40px;
+        }
+
+            #invoice-paper .bill-to h4 {
+                color: #888;
+                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+            }
+
+            #invoice-paper .bill-to p {
+                margin: 2px 0;
+                font-size: 15px;
+                font-weight: 500;
+                color: #333;
+            }
+
+        /* Scoped Table Styles to prevent layout clash */
+        #invoice-paper .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+            #invoice-paper .invoice-table thead th {
+                background: #f8f9fa;
+                color: #555;
+                text-align: left;
+                padding: 12px 15px;
+                font-size: 13px;
+                border-bottom: 2px solid #ddd;
+                font-weight: 600;
+            }
+
+            #invoice-paper .invoice-table tbody td {
+                padding: 12px 15px;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+                color: #333;
+            }
+
+            #invoice-paper .invoice-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+        #invoice-paper .totals-container {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #invoice-paper .totals-table {
+            width: 300px;
+        }
+
+            #invoice-paper .totals-table td {
+                padding: 8px 0;
+                font-size: 14px;
+                color: #555;
+            }
+
+            #invoice-paper .totals-table .grand-total {
+                background: #f8f9fa;
+                border-top: 2px solid #ddd;
+                border-bottom: 2px solid #ddd;
+            }
+
+                #invoice-paper .totals-table .grand-total td {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #333;
+                    padding: 12px 15px;
+                }
+
+        #invoice-paper .text-right {
+            text-align: right;
+        }
+
+        #invoice-paper .invoice-footer {
+            margin-top: 50px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+            #invoice-paper .invoice-footer p {
+                color: #888;
+                font-size: 12px;
+                margin: 0;
+            }
+</style>
+
+<div class="pdf-toolbar">
+    <button onclick="generatePDF()" class="btn-pdf">
+        <i class="fas fa-download"></i> Download PDF
+    </button>
+</div>
+
+<!-- This is the element that will be converted to PDF -->
+<div id="invoice-paper">
+    <div class="invoice-header">
+        <div class="company-info">
+            <h2>Inventory ERP</h2>
+            <p>123 Business Ave, Suite 100</p>
+            <p>New York, NY 10001</p>
+            <p>contact@inventoryerp.com</p>
+        </div>
+        <div class="invoice-meta">
+            <h1>Invoice</h1>
+            <p><strong>No:</strong> @Model.InvoiceNo</p>
+            <p><strong>Date:</strong> @Model.InvoiceDate.ToString("MMM dd, yyyy")</p>
+        </div>
+    </div>
+
+    <div class="bill-to">
+        <h4>Bill To</h4>
+        <p>@Model.CustomerName</p>
+        @if (!string.IsNullOrEmpty(Model.CustomerPhone))
+        {
+            <p>Phone: @Model.CustomerPhone</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.CustomerEmail))
+        {
+            <p>Email: @Model.CustomerEmail</p>
+        }
+        @if (!string.IsNullOrEmpty(Model.CustomerAddress))
+        {
+            <p>Address: @Model.CustomerAddress</p>
+        }
+    </div>
+
+    <table class="invoice-table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Items != null)
+            {
+                foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@(string.IsNullOrEmpty(item.Sku) ? "-" : item.Sku)</td>
+                        <td class="text-right">@item.Quantity</td>
+                        <td class="text-right">$@item.UnitPrice.ToString("N2")</td>
+                        <td class="text-right">$@item.Total.ToString("N2")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <div class="totals-container">
+        <table class="totals-table">
+            <tr>
+                <td>Subtotal:</td>
+                <td class="text-right">$@subTotal.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td>Tax (@Model.Tax%):</td>
+                <td class="text-right">$@taxAmount.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td>VAT (@Model.Vat%):</td>
+                <td class="text-right">$@vatAmount.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td>Discount:</td>
+                <td class="text-right">-$@Model.Discount.ToString("N2")</td>
+            </tr>
+            <tr class="grand-total">
+                <td>Grand Total:</td>
+                <td class="text-right">$@Model.GrandTotal.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td>Paid Amount:</td>
+                <td class="text-right">$@Model.PaidAmount.ToString("N2")</td>
+            </tr>
+            <tr>
+                <td><strong>Due Amount:</strong></td>
+                <td class="text-right"><strong>$@Model.DueAmount.ToString("N2")</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="invoice-footer">
+        <p>Thank you for your business! This is a computer-generated invoice and does not require a signature.</p>
+    </div>
+</div>
+
+<script>
+    function generatePDF() {
+        const element = document.getElementById('invoice-paper');
+
+        // Configuration for html2pdf
+        const opt = {
+            margin: 0,
+            filename: 'Invoice_@(Model.InvoiceNo).pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true }, // scale: 2 for high resolution
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Initiate PDF generation
+        html2pdf().set(opt).from(element).save();
+    }
+</script>

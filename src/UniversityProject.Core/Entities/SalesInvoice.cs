@@ -6,7 +6,10 @@ public class SalesInvoice:AuditableEntity
 {
     public string InvoiceNo { get; set; }
     public long CustomerId { get; set; }
+    public long WarehouseId { get; set; }
+
     public Customer Customer { get; set; }
+    public Warehouse Warehouse { get; set; }
     public DateTime InvoiceDate { get; set; }
     public decimal Discount { get; set; }
     public decimal Tax { get; set; }
