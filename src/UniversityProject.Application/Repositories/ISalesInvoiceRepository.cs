@@ -11,6 +11,7 @@ namespace UniversityProject.Application.Repositories;
 
 public interface ISalesInvoiceRepository
 {
+    Task<List<CustomerUnpaidInvoiceViewModel>> GetCustomerUnpaidInvoices(long customerId);
     Task<SelectList> GetCustomerDropdownAsync();
 
     Task<SelectList> GetProductDropdownAsync();
@@ -30,6 +31,7 @@ public interface ISalesInvoiceRepository
     Task<bool> DeleteAsync(
         long invoiceId,
         long deletedBy);
+    
 }
 public class SalesInvoiceRepository : ISalesInvoiceRepository
 {
@@ -39,6 +41,22 @@ public class SalesInvoiceRepository : ISalesInvoiceRepository
         IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
+    }
+    public async Task<List<CustomerUnpaidInvoiceViewModel>> GetCustomerUnpaidInvoices(long customerId)
+    {
+        using var connection =
+            _connectionFactory.CreateConnection();
+
+        var result = await connection.QueryAsync<CustomerUnpaidInvoiceViewModel>(
+            "sp_Customer_UnpaidInvoices",
+            new
+            {
+                CustomerId = customerId
+            },
+            commandType: CommandType.StoredProcedure
+        );
+
+        return result.ToList();
     }
     public async Task<SalesInvoiceDetailsViewModel> GetDetailsByIdAsync(long id)
     {

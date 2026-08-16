@@ -1,0 +1,962 @@
+﻿@model UniversityProject.Application.ViewModel.CustomerPaymentViewModel
+
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Customer Payment";
+    Layout = "_Layout";
+}
+
+<style>
+
+    html,
+    body {
+        color-scheme: dark;
+    }
+
+    .master-panel {
+        max-width: 1100px;
+        margin: 0 auto 24px auto;
+    }
+
+    .master-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--fg-muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .form-input,
+    .form-select {
+        width: 100%;
+        height: 52px;
+        padding: 14px 16px;
+        background-color: var(--bg-deep) !important;
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        color: var(--fg) !important;
+        font-size: 14px;
+        outline: none;
+        box-sizing: border-box;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+    .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        padding-right: 40px;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237a9484' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 16px;
+    }
+
+        .form-select option {
+            background-color: var(--bg-deep) !important;
+            color: var(--fg) !important;
+        }
+
+    .invoice-panel {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .invoice-table th {
+            padding: 14px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--fg-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .invoice-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+    .invoice-row:hover {
+        background: rgba(255,255,255,0.02);
+    }
+
+    .collection-input {
+        background: var(--bg-deep);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--accent);
+        padding: 8px 12px;
+        width: 120px;
+        text-align: right;
+        font-weight: 600;
+        outline: none;
+    }
+
+        .collection-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+    .summary-panel {
+        max-width: 1100px;
+        margin: 20px auto;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .summary-box {
+        width: 320px;
+        background: var(--bg-deep);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 7px 0;
+    }
+
+        .summary-row.total {
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+    .payment-actions {
+        max-width: 1100px;
+        margin: 20px auto 40px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-payment {
+        min-width: 150px;
+        height: 48px;
+        border: none;
+        border-radius: 10px;
+        padding: 0 20px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .btn-cancel {
+        background: var(--bg-deep);
+        color: var(--fg);
+        border: 1px solid var(--border);
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 40px;
+        color: var(--fg-muted);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--fg-muted);
+    }
+
+    .invoice-paid {
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .invoice-due {
+        color: #f43f5e;
+        font-weight: 600;
+    }
+
+    .invoice-remaining {
+        color: var(--accent-warm);
+        font-weight: 700;
+    }
+
+    @@media (max-width: 768px) {
+
+        .master-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-panel {
+            justify-content: stretch;
+        }
+
+        .summary-box {
+            width: 100%;
+        }
+
+        .payment-actions {
+            flex-direction: column;
+        }
+
+        .btn-payment {
+            width: 100%;
+        }
+    }
+
+</style>
+
+
+<form asp-action="Create"
+      asp-controller="CustomerPayments"
+      method="post"
+      id="paymentForm">
+
+    @Html.AntiForgeryToken()
+
+
+    <!-- ================================= -->
+    <!-- MASTER -->
+    <!-- ================================= -->
+
+    <div class="panel master-panel">
+
+        <div class="master-grid">
+
+
+            <!-- Customer -->
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Customer
+                </label>
+
+                <select id="customerId"
+                        name="CustomerId"
+                        class="form-select"
+                        required
+                        onchange="loadCustomerInvoices(this.value)">
+
+                    <option value="">
+                        Select Customer
+                    </option>
+
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (var c in
+                            (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@c.Value">
+
+                                @c.Text
+
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- Payment Date -->
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Payment Date
+                </label>
+
+                <input type="date"
+                       name="PaymentDate"
+                       id="paymentDate"
+                       class="form-input"
+                       value="@Model.PaymentDate.ToString("yyyy-MM-dd")"
+                       required />
+
+            </div>
+
+
+            <!-- Payment Method -->
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    Payment Method
+                </label>
+
+                <select name="PaymentMethod"
+                        id="paymentMethod"
+                        class="form-select"
+                        required>
+
+                    <option value="Cash">
+                        Cash
+                    </option>
+
+                    <option value="Card">
+                        Credit/Debit Card
+                    </option>
+
+                    <option value="Bank Transfer">
+                        Bank Transfer
+                    </option>
+
+                    <option value="Cheque">
+                        Cheque
+                    </option>
+
+                </select>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- INVOICE LIST -->
+    <!-- ================================= -->
+
+    <div class="panel invoice-panel">
+
+        <div class="panel-header">
+
+            <h3>
+                Outstanding Invoices
+            </h3>
+
+            <span id="invoiceCount">
+                0 invoices
+            </span>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="invoice-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Invoice No
+                        </th>
+
+                        <th>
+                            Customer
+                        </th>
+
+                        <th style="text-align:right">
+                            Paid
+                        </th>
+
+                        <th style="text-align:right">
+                            Due
+                        </th>
+
+                        <th style="text-align:center">
+                            Collection
+                        </th>
+
+                        <th style="text-align:right">
+                            Remaining
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="invoiceTableBody">
+
+                    <tr>
+
+                        <td colspan="6"
+                            class="empty-message">
+
+                            Please select a customer
+                            to view outstanding invoices.
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- SUMMARY -->
+    <!-- ================================= -->
+
+    <div class="summary-panel">
+
+        <div class="summary-box">
+
+            <div class="summary-row">
+
+                <span>
+                    Total Due
+                </span>
+
+                <strong id="totalDue">
+                    $0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Collection
+                </span>
+
+                <strong id="totalCollection"
+                        style="color:var(--accent)">
+                    $0.00
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row total">
+
+                <span>
+                    Remaining
+                </span>
+
+                <strong id="totalRemaining"
+                        style="color:var(--accent-warm)">
+                    $0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- BUTTONS -->
+    <!-- ================================= -->
+
+    <div class="payment-actions">
+
+        <a href="@Url.Action("Index", "CustomerPayments")"
+           class="btn-payment btn-cancel"
+           style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+
+            Cancel
+
+        </a>
+
+
+        <button type="submit"
+                class="btn-payment btn-submit"
+                id="submitPayment">
+
+            Save Payment
+
+        </button>
+
+    </div>
+
+</form>
+
+
+<script>
+
+    //==========================================
+    // LOAD INVOICES
+    //==========================================
+
+    function loadCustomerInvoices(customerId) {
+        const tableBody =
+            document.getElementById(
+                'invoiceTableBody'
+            );
+
+        const count =
+            document.getElementById(
+                'invoiceCount'
+            );
+
+
+        if (!customerId) {
+            tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6"
+                            class="empty-message">
+
+                            Please select a customer
+                            to view outstanding invoices.
+
+                        </td>
+                    </tr>
+                `;
+
+            count.innerText =
+                "0 invoices";
+
+            updateSummary();
+
+            return;
+        }
+
+
+        tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="loading">
+
+                        Loading invoices...
+
+                    </td>
+                </tr>
+            `;
+
+
+        fetch(
+            '@Url.Action("GetCustomerInvoices", "CustomerPayments")'
+            + '?customerId='
+            + customerId
+        )
+            .then(response => {
+                if (!response.ok)
+                    throw new Error(
+                        "Failed to load invoices."
+                    );
+
+                return response.json();
+            })
+            .then(data => {
+                count.innerText =
+                    data.length
+                    + " invoice"
+                    + (data.length !== 1
+                        ? "s"
+                        : "");
+
+
+                if (!data.length) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6"
+                                class="empty-message">
+
+                                No outstanding invoices found.
+
+                            </td>
+                        </tr>
+                    `;
+
+                    updateSummary();
+
+                    return;
+                }
+
+
+                let html = "";
+
+
+                data.forEach((item, index) => {
+
+                    const paid = Number(item.paidAmount) || 0;
+                    const due = Number(item.dueAmount) || 0;
+                    const remainingDue = Number(item.remainingDueAmount) || due;
+
+                    html += `
+            <tr class="invoice-row"
+                data-due="${remainingDue}">
+
+                <td>
+                    <strong>
+                        ${escapeHtml(item.invoiceNo)}
+                    </strong>
+
+                    <input type="hidden"
+                           name="Invoices[${index}].SalesInvoiceId"
+                           value="${item.salesInvoiceId}" />
+
+                    <input type="hidden"
+                           name="Invoices[${index}].InvoiceNo"
+                           value="${escapeHtml(item.invoiceNo)}" />
+
+                    <input type="hidden"
+                           name="Invoices[${index}].CustomerName"
+                           value="${escapeHtml(item.customerName)}" />
+
+                    <input type="hidden"
+                           name="Invoices[${index}].PaidAmount"
+                           value="${paid}" />
+
+                    <input type="hidden"
+                           name="Invoices[${index}].DueAmount"
+                           value="${due}" />
+
+                    <input type="hidden"
+                           name="Invoices[${index}].RemainingDueAmount"
+                           value="${remainingDue}" />
+                </td>
+
+                <td>
+                    ${escapeHtml(item.customerName)}
+                </td>
+
+                <td style="text-align:right">
+                    <span class="invoice-paid">
+                        $${paid.toFixed(2)}
+                    </span>
+                </td>
+
+                <td style="text-align:right">
+                    <span class="invoice-due">
+                        $${due.toFixed(2)}
+                    </span>
+                </td>
+
+                <td style="text-align:center">
+                    <input type="number"
+                           class="collection-input"
+                           name="Invoices[${index}].CollectionAmount"
+                           min="0"
+                           max="${remainingDue}"
+                           step="0.01"
+                           value="0"
+                           data-due="${remainingDue}"
+                           oninput="calculateRemaining(this)" />
+                </td>
+
+                <td style="text-align:right">
+                    <span class="invoice-remaining remaining">
+                        $${remainingDue.toFixed(2)}
+                    </span>
+                </td>
+
+            </tr>
+        `;
+                });
+
+
+                tableBody.innerHTML = html;
+
+                updateSummary();
+
+            })
+            .catch(error => {
+                console.error(error);
+
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6"
+                            class="empty-message"
+                            style="color:#f43f5e">
+
+                            Error loading invoices.
+
+                        </td>
+                    </tr>
+                `;
+            });
+    }
+
+
+    //==========================================
+    // CALCULATE REMAINING
+    //==========================================
+
+    function calculateRemaining(input) {
+        const row =
+            input.closest('.invoice-row');
+
+
+        const due =
+            Number(input.dataset.due) || 0;
+
+
+        let collection =
+            Number(input.value) || 0;
+
+
+        if (collection < 0) {
+            collection = 0;
+
+            input.value = "0";
+        }
+
+
+        if (collection > due) {
+            collection = due;
+
+            input.value =
+                due.toFixed(2);
+
+            showToast(
+                "Collection cannot exceed invoice due.",
+                "info"
+            );
+        }
+
+
+        const remaining =
+            due - collection;
+
+
+        row.querySelector(
+            '.remaining'
+        ).innerText =
+            '$' + remaining.toFixed(2);
+
+
+        updateSummary();
+    }
+
+
+    //==========================================
+    // SUMMARY
+    //==========================================
+
+    function updateSummary() {
+        let totalDue = 0;
+
+        let totalCollection = 0;
+
+
+        document
+            .querySelectorAll('.invoice-row')
+            .forEach(row => {
+                const due =
+                    Number(
+                        row.dataset.due
+                    ) || 0;
+
+
+                const input =
+                    row.querySelector(
+                        '.collection-input'
+                    );
+
+
+                const collection =
+                    Number(
+                        input.value
+                    ) || 0;
+
+
+                totalDue += due;
+
+                totalCollection +=
+                    collection;
+            });
+
+
+        const remaining =
+            totalDue -
+            totalCollection;
+
+
+        document.getElementById(
+            'totalDue'
+        ).innerText =
+            '$' + totalDue.toFixed(2);
+
+
+        document.getElementById(
+            'totalCollection'
+        ).innerText =
+            '$' + totalCollection.toFixed(2);
+
+
+        document.getElementById(
+            'totalRemaining'
+        ).innerText =
+            '$' + remaining.toFixed(2);
+    }
+
+
+    //==========================================
+    // SUBMIT VALIDATION
+    //==========================================
+
+    document
+        .getElementById('paymentForm')
+        .addEventListener(
+            'submit',
+            function(e) {
+                const customer =
+                    document.getElementById(
+                        'customerId'
+                    ).value;
+
+
+                if (!customer) {
+                    e.preventDefault();
+
+                    alert(
+                        "Please select customer."
+                    );
+
+                    return;
+                }
+
+
+                let total = 0;
+
+                let hasPayment = false;
+
+
+                document
+                    .querySelectorAll(
+                        '.invoice-row'
+                    )
+                    .forEach(row => {
+                        const input =
+                            row.querySelector(
+                                '.collection-input'
+                            );
+
+
+                        const amount =
+                            Number(
+                                input.value
+                            ) || 0;
+
+
+                        const due =
+                            Number(
+                                input.dataset.due
+                            ) || 0;
+
+
+                        if (amount > 0)
+                            hasPayment = true;
+
+
+                        if (amount > due) {
+                            e.preventDefault();
+
+                            alert(
+                                "Collection cannot exceed invoice due."
+                            );
+
+                            return;
+                        }
+
+
+                        total += amount;
+                    });
+
+
+                if (!hasPayment) {
+                    e.preventDefault();
+
+                    alert(
+                        "Please enter at least one collection amount."
+                    );
+
+                    return;
+                }
+
+
+                if (total <= 0) {
+                    e.preventDefault();
+
+                    return;
+                }
+
+
+                const button =
+                    document.getElementById(
+                        'submitPayment'
+                    );
+
+
+                button.disabled = true;
+
+                button.innerText =
+                    "Saving...";
+            }
+        );
+
+
+    //==========================================
+    // HTML ENCODE
+    //==========================================
+
+    function escapeHtml(value) {
+        if (!value)
+            return '';
+
+        return String(value)
+            .replace(
+                /&/g,
+                '&amp;'
+            )
+            .replace(
+                /</g,
+                '&lt;'
+            )
+            .replace(
+                />/g,
+                '&gt;'
+            )
+            .replace(
+                /"/g,
+                '&quot;'
+            )
+            .replace(
+                /'/g,
+                '&#039;'
+            );
+    }
+
+</script>
