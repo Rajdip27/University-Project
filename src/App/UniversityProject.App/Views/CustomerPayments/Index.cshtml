@@ -1,7 +1,6 @@
-﻿@using UniversityProject.Application.ViewModel
-@model IEnumerable<SalesInvoiceListViewModel>
+﻿@model IEnumerable<UniversityProject.Application.ViewModel.CustomerPaymentListViewModel>
 @{
-    ViewData["Title"] = "Sales Invoices";
+    ViewData["Title"] = "Payment History";
     Layout = "_Layout";
 
     int currentPage = ViewBag.Page ?? 1;
@@ -46,21 +45,35 @@
             color: #f43f5e;
         }
 
+    .customer-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .customer-phone {
+        font-size: 12px;
+        color: var(--fg-dim);
+    }
+
+    .method-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--bg-deep);
+        border: 1px solid var(--border);
+        color: var(--fg-muted);
+        display: inline-block;
+    }
+
     .amount-positive {
         color: var(--accent);
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 15px;
     }
 
-    .amount-negative {
-        color: #f43f5e;
-        font-weight: 600;
-    }
-
-    .amount-muted {
-        color: var(--fg-muted);
-        font-weight: 500;
-    }
-
+    /* Pagination */
     .pagination {
         display: flex;
         gap: 8px;
@@ -168,20 +181,20 @@
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
     <div>
-        <h1>Sales Invoices</h1>
-        <p>Manage customer invoices, payments, and due balances.</p>
+        <h1>Payment History</h1>
+        <p>View all customer payments and transaction details.</p>
     </div>
-    <a href="@Url.Action("Create", "SalesInvoice")" class="btn-primary">
-        <i class="fas fa-plus"></i> New Invoice
+    <a href="@Url.Action("Create", "CustomerPayments")" class="btn-primary">
+        <i class="fas fa-hand-holding-dollar"></i> Receive Payment
     </a>
 </div>
 
 <div class="panel">
     <div class="panel-header">
-        <h3>All Invoices</h3>
-        <form action="@Url.Action("Index", "SalesInvoice")" method="get" class="topbar-search">
+        <h3>All Payments</h3>
+        <form action="@Url.Action("Index", "CustomerPayments")" method="get" class="topbar-search">
             <i class="fas fa-search"></i>
-            <input type="text" name="search" value="@searchQuery" placeholder="Search invoices...">
+            <input type="text" name="search" value="@searchQuery" placeholder="Search invoice, customer, method...">
         </form>
     </div>
 
@@ -190,20 +203,17 @@
             <thead>
                 <tr>
                     <th>Invoice No</th>
-                    <th>Date</th>
                     <th>Customer</th>
-                    <th>Grand Total</th>
-                    <th>Paid</th>
-                    <th>Due</th>
-                    <th>Status</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th>Payment Date</th>
+                    <th>Method</th>
+                    <th style="text-align: right;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--fg-muted);">No invoices found.</td>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--fg-muted);">No payments found.</td>
                     </tr>
                 }
                 else
@@ -212,46 +222,18 @@
                     {
                         <tr>
                             <td><strong>@item.InvoiceNo</strong></td>
-                            <td>@item.InvoiceDate.ToString("MMM dd, yyyy")</td>
-                            <td>@item.CustomerName</td>
-                            <td class="amount-positive">$@item.GrandTotal.ToString("N2")</td>
-                            <td class="amount-muted">$@item.PaidAmount.ToString("N2")</td>
-                            <td class="@(item.DueAmount > 0 ? "amount-negative" : "amount-muted")">$@item.DueAmount.ToString("N2")</td>
                             <td>
-                                @if (item.PaidAmount >= item.GrandTotal)
-                                {
-                                    <span class="badge bg-success">Paid</span>
-                                }
-                                else if (item.PaidAmount > 0)
-                                {
-                                    <span class="badge bg-warning text-dark">Partial Paid</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Unpaid</span>
-                                }
-                            </td>
-
-                            <td>
-                                <div class="table-actions">
-                                    <a href="@Url.Action("Details", "SalesInvoice", new { id = item.Id })" class="action-btn" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    @if (item.PaidAmount <= 0)
-                                    {
-                                        <a href="@Url.Action("Edit", "SalesInvoice", new { id = item.Id })" class="action-btn" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    }
-                                   @*  <form action="@Url.Action("Delete", "SalesInvoice")" method="post" style="display:inline;" data-confirm-delete>
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="action-btn delete" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form> *@
+                                <div class="customer-cell">
+                                    <span>@item.CustomerName</span>
+                                    <span class="customer-phone">@item.CustomerPhone</span>
                                 </div>
                             </td>
+                            <td>@item.PaymentDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="method-badge">@item.PaymentMethod</span>
+                            </td>
+                            <td style="text-align: right;" class="amount-positive">@item.Amount.ToString("N2")</td>
+                           
                         </tr>
                     }
                 }

@@ -11,21 +11,28 @@ public class CustomerPaymentsController(
     IAppLogger<CustomerPaymentsController> _logger)
     : Controller
 {
-    //====================================================
-    // INDEX
-    //====================================================
-
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index(string search, int page = 1)
     {
-        return View();
+        try
+        {
+            // Call your repository to execute the stored procedure
+            var result = await _paymentRepository.GetListAsync(search, page, 10);
+
+            ViewBag.Search = search;
+            ViewBag.Page = page;
+            ViewBag.TotalCount = result.TotalCount;
+
+            return View(result.Items); // Passes IEnumerable<CustomerPaymentListViewModel> to the view
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to load customer payments.", ex);
+            TempData["AlertType"] = "error";
+            TempData["AlertMessage"] = "Failed to load payment history.";
+            return View(new List<CustomerPaymentListViewModel>());
+        }
     }
-
-
-    //====================================================
-    // CREATE GET
-    //====================================================
-
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -57,9 +64,7 @@ public class CustomerPaymentsController(
     }
 
 
-    //====================================================
-    // GET CUSTOMER INVOICES
-    //====================================================
+    
 
     [HttpGet]
     public async Task<IActionResult> GetCustomerInvoices(
@@ -95,9 +100,7 @@ public class CustomerPaymentsController(
     }
 
 
-    //====================================================
-    // CREATE POST
-    //====================================================
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -106,9 +109,7 @@ public class CustomerPaymentsController(
     {
         try
         {
-            //============================================
-            // Customer Validation
-            //============================================
+
 
             if (model.CustomerId <= 0)
             {
@@ -116,18 +117,10 @@ public class CustomerPaymentsController(
                     nameof(model.CustomerId),
                     "Please select customer.");
             }
-
-
-            //============================================
-            // Invoice Validation
-            //============================================
-
             var selectedPayments =
                 model.Invoices?
                     .Where(x => x.CollectionAmount > 0)
                     .ToList();
-
-
             if (selectedPayments == null ||
                 selectedPayments.Count == 0)
             {
@@ -137,9 +130,7 @@ public class CustomerPaymentsController(
             }
 
 
-            //============================================
-            // Amount Validation
-            //============================================
+     
 
             if (selectedPayments != null)
             {
@@ -165,11 +156,6 @@ public class CustomerPaymentsController(
                 }
             }
 
-
-            //============================================
-            // Validation Failed
-            //============================================
-
             if (!ModelState.IsValid)
             {
                 ViewBag.Customers =
@@ -178,41 +164,20 @@ public class CustomerPaymentsController(
 
                 return View(model);
             }
-
-
-            //============================================
-            // Selected Invoices
-            //============================================
-
             model.Invoices = selectedPayments;
 
 
-            //============================================
-            // Total Payment
-            //============================================
+
 
             model.TotalPayment =
                 selectedPayments.Sum(
                     x => x.CollectionAmount);
 
-
-            //============================================
-            // Current User
-            //============================================
-
             long userId = 1;
-
-
-            //============================================
-            // SAVE
-            //============================================
-
             var result =
                 await _paymentRepository.SaveAsync(
                     model,
                     userId);
-
-
             if (result)
             {
                 _logger.LogInfo(

@@ -1,16 +1,59 @@
-﻿@model IEnumerable<UniversityProject.Core.Entities.Purchase>
+﻿@model IEnumerable<UniversityProject.Application.ViewModel.PurchaseListViewModel>
+
 @{
     ViewData["Title"] = "Purchase List";
     Layout = "_Layout";
 
-    // Pagination variables passed from the controller
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     int totalItems = ViewBag.TotalItems ?? 0;
     int pageSize = ViewBag.PageSize ?? 10;
+
+    string search = ViewBag.Search ?? "";
+    DateTime? fromDate = ViewBag.FromDate;
+    DateTime? toDate = ViewBag.ToDate;
 }
 
 <style>
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 20px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--fg-muted);
+        }
+
+    .filter-input {
+        height: 42px;
+        padding: 8px 12px;
+        background: var(--bg-deep);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--fg);
+        outline: none;
+    }
+
+        .filter-input:focus {
+            border-color: var(--accent);
+        }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+    }
+
     .table-actions {
         display: flex;
         gap: 8px;
@@ -63,7 +106,26 @@
             box-shadow: 0 4px 20px rgba(0, 201, 120, 0.3);
         }
 
-    /* --- Pagination Styles --- */
+    .btn-secondary {
+        background: transparent;
+        color: var(--fg-muted);
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+
+    /* Pagination */
+
     .pagination-wrapper {
         display: flex;
         justify-content: space-between;
@@ -119,40 +181,173 @@
             cursor: not-allowed;
             pointer-events: none;
         }
+
+    @@media (max-width: 992px) {
+        .filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pagination-wrapper {
+            justify-content: center;
+        }
+    }
 </style>
 
-<div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+
+<div class="page-header"
+     style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+
     <div>
         <h1>Purchase List</h1>
         <p>Manage your supplier purchases and track inventory inflow.</p>
     </div>
-    <a href="@Url.Action("Create", "Purchase")" class="btn-primary">
-        <i class="fas fa-plus"></i> New Purchase
+
+    <a asp-controller="Purchase"
+       asp-action="Create"
+       class="btn-primary">
+
+        <i class="fas fa-plus"></i>
+        New Purchase
+
     </a>
+
 </div>
 
+
 <div class="panel">
+
     <div class="panel-header">
         <h3>All Purchases</h3>
     </div>
 
+
+    <!-- Filter -->
+
+    <form asp-controller="Purchase"
+          asp-action="Index"
+          method="get"
+          class="filter-grid">
+
+        <div class="filter-group">
+
+            <label>Search</label>
+
+            <input type="text"
+                   name="search"
+                   value="@search"
+                   class="filter-input"
+                   placeholder="Invoice, supplier or warehouse..." />
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label>From Date</label>
+
+            <input type="date"
+                   name="fromDate"
+                   value="@(fromDate?.ToString("yyyy-MM-dd"))"
+                   class="filter-input" />
+
+        </div>
+
+
+        <div class="filter-group">
+
+            <label>To Date</label>
+
+            <input type="date"
+                   name="toDate"
+                   value="@(toDate?.ToString("yyyy-MM-dd"))"
+                   class="filter-input" />
+
+        </div>
+
+
+        <div class="filter-actions">
+
+            <button type="submit"
+                    class="btn-primary">
+
+                <i class="fas fa-search"></i>
+                Search
+
+            </button>
+
+            <a asp-controller="Purchase"
+               asp-action="Index"
+               class="btn-secondary">
+
+                <i class="fas fa-redo"></i>
+
+            </a>
+
+        </div>
+
+    </form>
+
+
+    <!-- Table -->
+
     <div class="table-wrapper">
+
         <table>
+
             <thead>
+
                 <tr>
+
                     <th>Invoice No</th>
+
                     <th>Date</th>
+
                     <th>Supplier</th>
+
                     <th>Warehouse</th>
+
+                    <th>Discount</th>
+
+                    <th>Tax</th>
+
+                    <th>VAT</th>
+
+                    <th>Transport</th>
+
                     <th>Grand Total</th>
-                    <th style="text-align: right;">Actions</th>
+
+                    <th style="text-align: right;">
+                        Actions
+                    </th>
+
                 </tr>
+
             </thead>
+
+
             <tbody>
-                @if (!Model.Any())
+
+                @if (Model == null || !Model.Any())
                 {
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--fg-muted);">No purchases found.</td>
+
+                        <td colspan="10"
+                            style="text-align: center; padding: 40px; color: var(--fg-muted);">
+
+                            <i class="fas fa-inbox"
+                               style="font-size: 30px; margin-bottom: 10px; display: block;">
+                            </i>
+
+                            No purchases found.
+
+                        </td>
+
                     </tr>
                 }
                 else
@@ -160,97 +355,284 @@
                     foreach (var item in Model)
                     {
                         <tr>
-                            <td><strong>@item.InvoiceNo</strong></td>
-                            <td>@item.PurchaseDate.ToString("MMM dd, yyyy")</td>
-                            <td>@(item.Supplier?.Name ?? "N/A")</td>
-                            <td>@(item.Warehouse?.Name ?? "N/A")</td>
-                            <td>$@item.GrandTotal.ToString("N2")</td>
+
                             <td>
-                                <div class="table-actions">
-                                    <a href="@Url.Action("Details", "Purchase", new { id = item.Id })" class="action-btn" title="View Details"><i class="fas fa-eye"></i></a>
-                                    <a href="@Url.Action("Edit", "Purchase", new { id = item.Id })" class="action-btn" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <form action="@Url.Action("Delete", "Purchase")" method="post" style="display:inline;" data-confirm-delete>
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <button type="submit" class="action-btn delete" title="Delete"><i class="fas fa-trash"></i></button>
-                                    </form>
-                                </div>
+                                <strong>
+                                    @item.InvoiceNo
+                                </strong>
                             </td>
+
+
+                            <td>
+                                @item.PurchaseDate.ToString("MMM dd, yyyy")
+                            </td>
+
+
+                            <td>
+                                @item.SupplierName
+                            </td>
+
+
+                            <td>
+                                @item.WarehouseName
+                            </td>
+
+
+                            <td>
+                                @item.Discount.ToString("N2")
+                            </td>
+
+
+                            <td>
+                                @item.Tax.ToString("N2")
+                            </td>
+
+
+                            <td>
+                                @item.Vat.ToString("N2")
+                            </td>
+
+
+                            <td>
+                                @item.TransportCost.ToString("N2")
+                            </td>
+
+
+                            <td>
+                                <strong>
+                                    ৳@item.GrandTotal.ToString("N2")
+                                </strong>
+                            </td>
+
+
+                            <td>
+
+                                <div class="table-actions">
+
+                                    <a asp-controller="Purchase"
+                                       asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="action-btn"
+                                       title="View Details">
+
+                                        <i class="fas fa-eye"></i>
+
+                                    </a>
+
+
+                                    <a asp-controller="Purchase"
+                                       asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="action-btn"
+                                       title="Edit">
+
+                                        <i class="fas fa-edit"></i>
+
+                                    </a>
+
+
+                                   @*  <form asp-controller="Purchase"
+                                          asp-action="Delete"
+                                          method="post"
+                                          style="display:inline;"
+                                          data-confirm-delete>
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@item.Id" />
+
+                                        <button type="submit"
+                                                class="action-btn delete"
+                                                title="Delete">
+
+                                            <i class="fas fa-trash"></i>
+
+                                        </button>
+
+                                    </form> *@
+
+                                </div>
+
+                            </td>
+
                         </tr>
                     }
                 }
+
             </tbody>
+
         </table>
+
     </div>
 
-    <!-- Pagination Footer -->
+
+    <!-- Pagination -->
     @if (totalItems > 0)
     {
         <div class="pagination-wrapper">
+
             <div class="pagination-info">
-                Showing <strong>@((currentPage - 1) * pageSize + 1)</strong> to <strong>@Math.Min(currentPage * pageSize, totalItems)</strong> of <strong>@totalItems</strong> entries
+
+                Showing
+
+                <strong>
+                    @((currentPage - 1) * pageSize + 1)
+                </strong>
+
+                to
+
+                <strong>
+                    @Math.Min(currentPage * pageSize, totalItems)
+                </strong>
+
+                of
+
+                <strong>
+                    @totalItems
+                </strong>
+
+                entries
+
             </div>
+
+
             <div class="pagination-controls">
-                <!-- Previous Button -->
+
+                <!-- Previous -->
                 @if (currentPage > 1)
                 {
-                    <a href="@Url.Action("Index", "Purchase", new { page = currentPage - 1 })" class="page-btn">
+                    <a asp-controller="Purchase"
+                       asp-action="Index"
+                       asp-route-search="@search"
+                       asp-route-fromDate="@fromDate?.ToString("yyyy-MM-dd")"
+                       asp-route-toDate="@toDate?.ToString("yyyy-MM-dd")"
+                       asp-route-page="@(currentPage - 1)"
+                       asp-route-pageSize="@pageSize"
+                       class="page-btn">
+
                         <i class="fas fa-chevron-left"></i>
+
                     </a>
                 }
                 else
                 {
-                    <button class="page-btn disabled"><i class="fas fa-chevron-left"></i></button>
+                    <button class="page-btn disabled">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
                 }
 
-                <!-- Page Numbers (Logic to show limited numbers e.g., 1 2 ... 4 5 6) -->
+
+                <!-- Page Numbers -->
                 @{
                     int startPage = Math.Max(1, currentPage - 2);
                     int endPage = Math.Min(totalPages, currentPage + 2);
+                }
 
-                    if (startPage > 1)
-                    {
-                        <a href="@Url.Action("Index", "Purchase", new { page = 1 })" class="page-btn">1</a>
-                        if (startPage > 2)
-                        {
-                            <span class="page-btn disabled">...</span>
-                        }
-                    }
 
-                    for (int i = startPage; i <= endPage; i++)
-                    {
-                        if (i == currentPage)
-                        {
-                            <span class="page-btn active">@i</span>
-                        }
-                        else
-                        {
-                            <a href="@Url.Action("Index", "Purchase", new { page = i })" class="page-btn">@i</a>
-                        }
-                    }
+                @if (startPage > 1)
+                {
+                    <a asp-controller="Purchase"
+                       asp-action="Index"
+                       asp-route-search="@search"
+                       asp-route-fromDate="@fromDate?.ToString("yyyy-MM-dd")"
+                       asp-route-toDate="@toDate?.ToString("yyyy-MM-dd")"
+                       asp-route-page="1"
+                       asp-route-pageSize="@pageSize"
+                       class="page-btn">
 
-                    if (endPage < totalPages)
+                        1
+
+                    </a>
+
+                    @if (startPage > 2)
                     {
-                        if (endPage < totalPages - 1)
-                        {
-                            <span class="page-btn disabled">...</span>
-                        }
-                        <a href="@Url.Action("Index", "Purchase", new { page = totalPages })" class="page-btn">@totalPages</a>
+                        <span class="page-btn disabled">
+                            ...
+                        </span>
                     }
                 }
 
-                <!-- Next Button -->
+
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <span class="page-btn active">
+                            @i
+                        </span>
+                    }
+                    else
+                    {
+                        <a asp-controller="Purchase"
+                           asp-action="Index"
+                           asp-route-search="@search"
+                           asp-route-fromDate="@fromDate?.ToString("yyyy-MM-dd")"
+                           asp-route-toDate="@toDate?.ToString("yyyy-MM-dd")"
+                           asp-route-page="@i"
+                           asp-route-pageSize="@pageSize"
+                           class="page-btn">
+
+                            @i
+
+                        </a>
+                    }
+                }
+
+
+                @if (endPage < totalPages)
+                {
+                    @if (endPage < totalPages - 1)
+                    {
+                        <span class="page-btn disabled">
+                            ...
+                        </span>
+                    }
+
+                    <a asp-controller="Purchase"
+                       asp-action="Index"
+                       asp-route-search="@search"
+                       asp-route-fromDate="@fromDate?.ToString("yyyy-MM-dd")"
+                       asp-route-toDate="@toDate?.ToString("yyyy-MM-dd")"
+                       asp-route-page="@totalPages"
+                       asp-route-pageSize="@pageSize"
+                       class="page-btn">
+
+                        @totalPages
+
+                    </a>
+                }
+
+
+                <!-- Next -->
                 @if (currentPage < totalPages)
                 {
-                    <a href="@Url.Action("Index", "Purchase", new { page = currentPage + 1 })" class="page-btn">
+                    <a asp-controller="Purchase"
+                       asp-action="Index"
+                       asp-route-search="@search"
+                       asp-route-fromDate="@fromDate?.ToString("yyyy-MM-dd")"
+                       asp-route-toDate="@toDate?.ToString("yyyy-MM-dd")"
+                       asp-route-page="@(currentPage + 1)"
+                       asp-route-pageSize="@pageSize"
+                       class="page-btn">
+
                         <i class="fas fa-chevron-right"></i>
+
                     </a>
                 }
                 else
                 {
-                    <button class="page-btn disabled"><i class="fas fa-chevron-right"></i></button>
+                    <button class="page-btn disabled">
+
+                        <i class="fas fa-chevron-right"></i>
+
+                    </button>
                 }
+
             </div>
+
         </div>
     }
+
 </div>

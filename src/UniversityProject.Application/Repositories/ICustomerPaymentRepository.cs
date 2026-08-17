@@ -12,6 +12,11 @@ public interface ICustomerPaymentRepository
     Task<bool> SaveAsync(
         CustomerPaymentViewModel model,
         long userId);
+    Task<(List<CustomerPaymentListViewModel> Items, int TotalCount)> GetListAsync(
+    string search,
+    int pageNo,
+    int pageSize);
+    Task<( CustomerLedgerReportSummaryViewModel Summary,List<CustomerLedgerReportViewModel> Items)> GetLedgerReportAsync(long? customerId, DateTime? startDate, DateTime? endDate);
 }
 
 public class CustomerPaymentRepository : ICustomerPaymentRepository
@@ -23,20 +28,71 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
     {
         _connectionFactory = connectionFactory;
     }
+    public async Task<(
+    CustomerLedgerReportSummaryViewModel Summary,List<CustomerLedgerReportViewModel> Items)> GetLedgerReportAsync(long? customerId,DateTime? startDate,DateTime? endDate)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var parameters = new DynamicParameters();
 
-    //====================================================
-    // GET CUSTOMER UNPAID INVOICES
-    //====================================================
+        parameters.Add(
+            "@CustomerId",
+            customerId,
+            DbType.Int64);
 
+        parameters.Add(
+            "@StartDate",
+            startDate,
+            DbType.Date);
+
+        parameters.Add(
+            "@EndDate",
+            endDate,
+            DbType.Date);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_CustomerLedger_Report",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        // Result Set 1 - Summary
+        var summary =
+            await multi.ReadFirstAsync<CustomerLedgerReportSummaryViewModel>();
+
+        // Result Set 2 - Ledger Transactions
+        var items =
+            (await multi.ReadAsync<CustomerLedgerReportViewModel>())
+            .ToList();
+
+        return (summary, items);
+    }
+    public async Task<(List<CustomerPaymentListViewModel> Items, int TotalCount)> GetListAsync(
+    string search,
+    int pageNo,
+    int pageSize)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+        var parameters = new DynamicParameters();
+        parameters.Add("@Search", search);
+        parameters.Add("@PageNo", pageNo);
+        parameters.Add("@PageSize", pageSize);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_CustomerPayment_List",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        var items = (await multi.ReadAsync<CustomerPaymentListViewModel>())
+            .ToList();
+
+        var totalCount = await multi.ReadFirstAsync<int>();
+
+        return (items, totalCount);
+    }
     public async Task<List<CustomerUnpaidInvoiceViewModel>>
         GetCustomerUnpaidInvoices(long customerId)
     {
         using var connection =
             _connectionFactory.CreateConnection();
-
-        if (connection.State != ConnectionState.Open)
-            connection.Open();
-
         var result =
             await connection.QueryAsync<CustomerUnpaidInvoiceViewModel>(
                 "sp_Customer_UnpaidInvoices",
@@ -117,10 +173,12 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
 
             return true;
         }
-        catch
+        catch(Exception ex)
         {
             transaction.Rollback();
+            Console.WriteLine( ex.Message);
             throw;
+            
         }
     }
 }

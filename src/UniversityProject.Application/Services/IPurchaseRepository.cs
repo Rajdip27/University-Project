@@ -18,7 +18,8 @@ public interface IPurchaseRepository
     Task<SelectList> GetDropdownAsync();
     Task<long> SaveAsync(Purchase purchase);
     Task<Purchase> GetByIdAsync(long purchaseId);
-    Task<(List<Purchase> Items, int TotalCount)> GetListAsync(
+    Task<PurchaseDetailsViewModel> GetDetailsAsync(long id);
+    Task<(List<PurchaseListViewModel> Items, int TotalCount)> GetListAsync(
         string search,
         DateTime? fromDate,
         DateTime? toDate,
@@ -40,6 +41,41 @@ public class PurchaseRepository : IPurchaseRepository
     public PurchaseRepository(IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
+    }
+    public async Task<PurchaseDetailsViewModel?> GetDetailsAsync(long id)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        if (connection.State != ConnectionState.Open)
+            connection.Open();
+
+        var parameters = new DynamicParameters();
+
+        parameters.Add(
+            "@PurchaseId",
+            id,
+            DbType.Int64);
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_Purchase_Details",
+            parameters,
+            commandType: CommandType.StoredProcedure);
+
+        // Master
+        var purchase =
+            await multi.ReadFirstOrDefaultAsync<PurchaseDetailsViewModel>();
+
+        if (purchase == null)
+            return null;
+
+        // Items
+        var items =
+            (await multi.ReadAsync<PurchaseDetailsItemViewModel>())
+            .ToList();
+
+        purchase.Items = items;
+
+        return purchase;
     }
     public async Task<StockReportDto> GetStockReportAsync(
     long? productId,
@@ -164,14 +200,17 @@ public class PurchaseRepository : IPurchaseRepository
 
     #region List
 
-    public async Task<(List<Purchase> Items, int TotalCount)> GetListAsync(
-        string search,
-        DateTime? fromDate,
-        DateTime? toDate,
-        int pageNo,
-        int pageSize)
+    public async Task<(List<PurchaseListViewModel> Items, int TotalCount)> GetListAsync(
+    string search,
+    DateTime? fromDate,
+    DateTime? toDate,
+    int pageNo,
+    int pageSize)
     {
         using var connection = _connectionFactory.CreateConnection();
+
+        if (connection.State != ConnectionState.Open)
+            connection.Open();
 
         var parameters = new DynamicParameters();
 
@@ -186,43 +225,12 @@ public class PurchaseRepository : IPurchaseRepository
             parameters,
             commandType: CommandType.StoredProcedure);
 
-        // First result set
-        var items = (await multi.ReadAsync<PurchaseListDto>())
+        var items = (await multi.ReadAsync<PurchaseListViewModel>())
             .ToList();
 
-        // Second result set
-        var totalCount = await multi.ReadFirstOrDefaultAsync<int>();
+        var totalCount = await multi.ReadFirstAsync<int>();
 
-        // Map Supplier and Warehouse navigation properties
-        var purchases = items.Select(x => new Purchase
-        {
-            Id = x.Id,
-            InvoiceNo = x.InvoiceNo,
-            SupplierId = x.SupplierId,
-            WarehouseId = x.WarehouseId,
-            PurchaseDate = x.PurchaseDate,
-            Discount = x.Discount,
-            Tax = x.Tax,
-            Vat = x.Vat,
-            TransportCost = x.TransportCost,
-            GrandTotal = x.GrandTotal,
-            CreatedDate = x.CreatedDate,
-
-            Supplier = new Supplier
-            {
-                Id = x.SupplierId,
-                Name = x.SupplierName
-            },
-
-            Warehouse = new Warehouse
-            {
-                Id = x.WarehouseId,
-                Name = x.WarehouseName
-            }
-
-        }).ToList();
-
-        return (purchases, totalCount);
+        return (items, totalCount);
     }
 
 

@@ -24,6 +24,7 @@ public class CustomerUnpaidInvoiceViewModel
 
     public string CustomerName { get; set; }
 
+
     public decimal PaidAmount { get; set; }
 
     public decimal DueAmount { get; set; }
@@ -32,4 +33,26 @@ public class CustomerUnpaidInvoiceViewModel
 
     // User entered collection amount
     public decimal CollectionAmount { get; set; }
+}
+public class CustomerPaymentListViewModel
+{
+    public long Id { get; set; }
+
+    public long CustomerId { get; set; }
+    public string CustomerName { get; set; }
+    public string CustomerPhone { get; set; }
+
+    public long SalesInvoiceId { get; set; }
+    public string InvoiceNo { get; set; }
+
+    public decimal Amount { get; set; }
+
+    public DateTime PaymentDate { get; set; }
+
+    public string PaymentMethod { get; set; }
+
+    public string Remarks { get; set; }
+
+    public long? CreatedBy { get; set; }
+    public DateTimeOffset? CreatedDate { get; set; }
 }

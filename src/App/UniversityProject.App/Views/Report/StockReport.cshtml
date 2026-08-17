@@ -166,19 +166,41 @@
         font-weight: 600;
     }
 
-    .text-success { color: var(--accent) !important; font-weight: 700; }
-    .text-danger { color: #f43f5e !important; font-weight: 700; }
-    .text-muted { color: var(--fg-muted) !important; }
+    .text-success {
+        color: var(--accent) !important;
+        font-weight: 700;
+    }
+
+    .text-danger {
+        color: #f43f5e !important;
+        font-weight: 700;
+    }
+
+    .text-muted {
+        color: var(--fg-muted) !important;
+    }
 
     .scrollable-table {
         max-height: 65vh;
         overflow-y: auto;
     }
-    /* Custom Scrollbar for dark mode */
-    .scrollable-table::-webkit-scrollbar { width: 8px; }
-    .scrollable-table::-webkit-scrollbar-track { background: var(--bg-deep); }
-    .scrollable-table::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    .scrollable-table::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        /* Custom Scrollbar for dark mode */
+        .scrollable-table::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollable-table::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        .scrollable-table::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+            .scrollable-table::-webkit-scrollbar-thumb:hover {
+                background: var(--accent);
+            }
 
     .btn-primary {
         background: linear-gradient(135deg, var(--accent), #008f55);
@@ -193,7 +215,10 @@
         gap: 8px;
         transition: opacity 0.2s;
     }
-    .btn-primary:hover { opacity: 0.9; }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
 
     .btn-secondary {
         background: transparent;
@@ -209,16 +234,18 @@
         gap: 8px;
         transition: all 0.2s;
     }
-    .btn-secondary:hover {
-        border-color: var(--accent);
-        color: var(--fg);
-    }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--fg);
+        }
 
     @@media (max-width: 992px) {
         .form-grid, .summary-grid {
             grid-template-columns: 1fr 1fr;
         }
     }
+
     @@media (max-width: 576px) {
         .form-grid, .summary-grid {
             grid-template-columns: 1fr;
@@ -232,7 +259,7 @@
 </div>
 
 <div class="panel form-container">
-    
+
     <!-- Filter Section -->
     <form method="get" asp-action="StockReport" class="form-grid">
         <div class="form-group">

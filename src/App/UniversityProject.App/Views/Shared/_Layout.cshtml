@@ -346,18 +346,38 @@
                 <a asp-controller="Supplier" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Supplier" ? "active" : "")">
                     <i class="fas fa-truck-field"></i> Suppliers
                 </a>
-                <a asp-controller="Orders" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Orders" ? "active" : "")">
-                    <i class="fas fa-clipboard-list"></i> Orders
+                
+            </div>
+            <div class="nav-section">
+                <div class="nav-title">Sales & Payments</div>
+                <a asp-controller="SalesInvoice" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "SalesInvoice" ? "active" : "")">
+                    <i class="fas fa-file-invoice-dollar"></i> Sales Invoices
+                </a>
+                <a asp-controller="CustomerPayments" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "CustomerPayments" ? "active" : "")">
+                    <i class="fas fa-hand-holding-dollar"></i> Customer Payments
                 </a>
             </div>
+
 
             <div class="nav-section">
                 <div class="nav-title">Management</div>
                 <a asp-controller="Customer" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Customer" ? "active" : "")">
                     <i class="fas fa-users"></i> Customers
                 </a>
-                <a asp-controller="Purchase" asp-action="StockReport" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Purchase" ? "active" : "")">
+                <a asp-controller="Report"
+                   asp-action="StockReport"
+                   class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Report"
+                                       && ViewContext.RouteData.Values["Action"]?.ToString() == "StockReport"
+                                       ? "active" : "")">
                     <i class="fas fa-receipt"></i> Purchase Report
+                </a>
+
+                <a asp-controller="Report"
+                   asp-action="CustomerLedger"
+                   class="nav-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Report"
+                                       && ViewContext.RouteData.Values["Action"]?.ToString() == "CustomerLedger"
+                                       ? "active" : "")">
+                    <i class="fas fa-receipt"></i> Customer Report
                 </a>
                 <a asp-controller="Reports" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Reports" ? "active" : "")">
                     <i class="fas fa-chart-pie"></i> Reports

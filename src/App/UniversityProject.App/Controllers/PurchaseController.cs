@@ -166,7 +166,7 @@ public class PurchaseController(
 
         ViewBag.Products = await _productService.GetDropdownAsync();
         ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
-        var purchase = await _purchaseService.GetByIdAsync(id);
+        var purchase = await _purchaseService.GetDetailsAsync(id);
 
         if (purchase == null)
         {
@@ -213,31 +213,7 @@ public class PurchaseController(
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> StockReport(
-    long? productId,
-    long? warehouseId,
-    DateTime? startDate,
-    DateTime? endDate)
-    {
-        _logger.LogInfo(
-            $"Loading Stock Ledger. " +
-            $"ProductId={productId}, " +
-            $"WarehouseId={warehouseId}, " +
-            $"StartDate={startDate}, " +
-            $"EndDate={endDate}");
-
-        var result = await _purchaseService.GetStockReportAsync(
-            productId,
-            warehouseId,
-            startDate,
-            endDate);
-
-        ViewBag.Products = await _productService.GetDropdownAsync();
-        ViewBag.Warehouses = await _purchaseService.GetDropdownAsync();
-
-        return View(result);
-    }
+    
 
     #endregion
 }
