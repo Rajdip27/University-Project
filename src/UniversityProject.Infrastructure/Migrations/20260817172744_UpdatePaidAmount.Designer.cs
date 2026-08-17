@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UniversityProject.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using UniversityProject.Infrastructure.Data;
 namespace UniversityProject.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817172744_UpdatePaidAmount")]
+    partial class UpdatePaidAmount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,7 +197,7 @@ namespace UniversityProject.Infrastructure.Migrations
                         {
                             Id = 1L,
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "01b2e34c-bea7-4ef5-a5f9-b9236eaed300",
+                            ConcurrencyStamp = "8e39b684-2b69-48c9-bb84-36f0d4ca4bc1",
                             CreatedBy = 0L,
                             CreatedDate = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "admin@localhost.com",
@@ -202,9 +205,9 @@ namespace UniversityProject.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJBHO4J0zj2t8Z0dLI5i1mPuiTjbxPKq2F8zGoPAxpetl9dndtQ63IIctQYUcy3g9w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENHhEnADF8sKw7dchW/7IIDa5qOXTy5rap8mX/Can0Vl04MdBaXgGYM1oDTBM0hc3g==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "8a739b82-3d09-4895-b184-e61294a1c885",
+                            SecurityStamp = "1853afbf-8821-4ddc-bf44-eb2e35655f10",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -674,10 +677,6 @@ namespace UniversityProject.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<decimal>("Discount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DueAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 

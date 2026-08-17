@@ -11,6 +11,7 @@ public class ReportController(
 IPurchaseRepository _purchaseService,
 IProductRepository _productService,
 ICustomerPaymentRepository _CustomerPaymentRepository,
+ISupplierRepository supplierRepository,
 ICustomerRepository _customerRepository,
 IAppLogger<PurchaseController> _logger) : Controller
 {
@@ -54,6 +55,23 @@ DateTime? endDate)
             Summary = result.Summary,
             Transactions = result.Items
         };
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> SupplierLedger(
+    long? supplierId,
+    DateTime? startDate,
+    DateTime? endDate)
+    {
+        ViewBag.Suppliers = await supplierRepository.GetDropdownAsync();
+
+        var model = await _CustomerPaymentRepository.GetSupplierLedgerReport(
+            supplierId,
+            startDate,
+            endDate
+        );
 
         return View(model);
     }

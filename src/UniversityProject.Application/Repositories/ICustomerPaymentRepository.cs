@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 using UniversityProject.Application.ViewModel;
 using UniversityProject.Infrastructure.Dapper;
@@ -8,7 +9,7 @@ namespace UniversityProject.Application.Repositories;
 public interface ICustomerPaymentRepository
 {
     Task<List<CustomerUnpaidInvoiceViewModel>> GetCustomerUnpaidInvoices(long customerId);
-
+    Task<SupplierLedgerReportDto> GetSupplierLedgerReport(long? supplierId,DateTime? startDate, DateTime? endDate);
     Task<bool> SaveAsync(
         CustomerPaymentViewModel model,
         long userId);
@@ -27,6 +28,41 @@ public class CustomerPaymentRepository : ICustomerPaymentRepository
         IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
+    }
+
+    public async Task<SupplierLedgerReportDto> GetSupplierLedgerReport(
+    long? supplierId,
+    DateTime? startDate,
+    DateTime? endDate)
+    {
+        using var connection = _connectionFactory.CreateConnection();
+
+        using var multi = await connection.QueryMultipleAsync(
+            "sp_SupplierLedgerReport",
+            new
+            {
+                SupplierId = supplierId,
+                StartDate = startDate,
+                EndDate = endDate
+            },
+            commandType: CommandType.StoredProcedure
+        );
+
+        var summary = await multi.ReadFirstOrDefaultAsync<SupplierLedgerSummaryDto>();
+
+        var transactions = (await multi.ReadAsync<SupplierLedgerTransactionDto>())
+            .ToList();
+
+        return new SupplierLedgerReportDto
+        {
+            SupplierId = supplierId,
+            StartDate = startDate,
+            EndDate = endDate,
+
+            Summary = summary ?? new SupplierLedgerSummaryDto(),
+
+            Transactions = transactions
+        };
     }
     public async Task<(
     CustomerLedgerReportSummaryViewModel Summary,List<CustomerLedgerReportViewModel> Items)> GetLedgerReportAsync(long? customerId,DateTime? startDate,DateTime? endDate)

@@ -14,6 +14,8 @@ namespace UniversityProject.Core.Entities
         public decimal Discount { get; set; }
         public decimal Tax { get; set; }
         public decimal Vat { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal DueAmount { get; set; }
         public decimal TransportCost { get; set; }
         public decimal GrandTotal { get; set; }
         public List<PurchaseItem> PurchaseItem { get; set; } = new List<PurchaseItem>();

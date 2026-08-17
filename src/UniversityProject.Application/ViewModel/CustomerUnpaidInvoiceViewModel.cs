@@ -56,3 +56,42 @@ public class CustomerPaymentListViewModel
     public long? CreatedBy { get; set; }
     public DateTimeOffset? CreatedDate { get; set; }
 }
+
+public class SupplierLedgerReportDto
+{
+    public SupplierLedgerSummaryDto Summary { get; set; } = new();
+
+    public List<SupplierLedgerTransactionDto> Transactions { get; set; } = new();
+
+    public long? SupplierId { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+}
+
+public class SupplierLedgerSummaryDto
+{
+    public decimal OpeningBalance { get; set; }
+    public decimal TotalDebit { get; set; }
+    public decimal TotalCredit { get; set; }
+    public decimal ClosingBalance { get; set; }
+}
+
+public class SupplierLedgerTransactionDto
+{
+    public DateTime TransactionDate { get; set; }
+
+    public long SupplierId { get; set; }
+    public string SupplierName { get; set; }
+
+    public string SupplierPhone { get; set; }
+
+    public string ReferenceType { get; set; }
+    public long ReferenceId { get; set; }
+
+    public string Description { get; set; }
+
+    public decimal Debit { get; set; }
+    public decimal Credit { get; set; }
+
+    public decimal RunningBalance { get; set; }
+}
